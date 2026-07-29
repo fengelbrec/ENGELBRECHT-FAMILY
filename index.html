@@ -49,7 +49,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .pill{display:inline-block;border-radius:20px;padding:3px 11px;font-size:11.5px;font-weight:700}
 .row{display:flex;align-items:center;gap:12px}
 .spread{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.12)}
+.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.12);background-size:cover;background-position:center;background-repeat:no-repeat}
+.photo-tap{position:relative;display:inline-block;cursor:pointer}
+.cam-badge{position:absolute;right:-2px;bottom:-2px;width:26px;height:26px;border-radius:50%;background:#3E4C7A;color:#fff;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.parents-row{display:flex;gap:14px;margin-bottom:6px}
+.parent-chip{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.parent-chip .name{font-size:12px;font-weight:700}
 .avatar.sm{width:30px;height:30px;font-size:12px}
 .avatar.lg{width:74px;height:74px;font-size:28px}
 .hint{font-size:12.5px;color:#8C8AA0;line-height:1.55}
@@ -316,7 +321,9 @@ function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e
 function byId(id){ for(var i=0;i<state.people.length;i++) if(state.people[i].id===id) return state.people[i]; return null; }
 function esc(s){ return (s==null?'':(''+s)).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function initials(name){ var w=(name||'').trim().split(/\s+/); return ((w[0]||'')[0]||'?').toUpperCase()+((w[1]||'')[0]||'').toUpperCase(); }
-function avatar(p,cls){ if(!p) return ''; return '<div class="avatar '+(cls||'')+'" style="background:'+p.color+'">'+esc(initials(p.name))+'</div>'; }
+function avatar(p,cls){ if(!p) return '';
+  if(p.photo) return '<div class="avatar '+(cls||'')+'" style="background-image:url('+p.photo+')"></div>';
+  return '<div class="avatar '+(cls||'')+'" style="background:'+p.color+'">'+esc(initials(p.name))+'</div>'; }
 function children(){ return state.people.filter(function(p){return p.role==='child';}); }
 function logoBadge(px, contain){ return '<span class="crest-wrap'+(contain?' full':'')+'" style="width:'+px+'px;height:'+px+'px">'+
   '<span class="crest-fb" style="font-size:'+Math.round(px*0.42)+'px">E</span>'+
@@ -562,7 +569,13 @@ function viewKids(){
       '<div class="kid-loc '+(home?'loc-home':'loc-away')+'">'+(home?'🏡 Home today':'✈️ '+esc(k.otherHome||'Away'))+'</div>'+
     '</div>';
   }).join('');
-  return '<div class="hint" style="margin:2px 2px 14px">Each child has their own page — school info, medical aid, passport and where they are this week. Documents stay on this phone only.</div>'+
+  var parentsRow = '<div class="sec-lbl" style="margin-top:2px">Parents</div>'+
+    '<div class="card"><div class="parents-row">'+ parents().map(function(p){
+      return '<div class="parent-chip" data-photo="'+p.id+'"><div class="photo-tap">'+avatar(p,'lg')+'<span class="cam-badge">📷</span></div><div class="name">'+esc(p.nick||p.name.split(' ')[0])+'</div></div>';
+    }).join('')+'</div><div class="hint" style="margin-top:11px">Tap a face to add a photo.</div></div>';
+  return parentsRow+
+    '<div class="sec-lbl">The children</div>'+
+    '<div class="hint" style="margin:0 2px 12px">Tap a child for their page — school, medical aid, passport, where they are this week. Tap the photo on their page to add a picture. Everything stays on this phone only.</div>'+
     '<div class="kid-grid">'+grid+'</div>'+
     '<div style="height:14px"></div><button class="btn ghost sm" data-addkid="1">＋ Add a child</button>';
 }
@@ -598,7 +611,7 @@ function viewKid(k){
 
   return ''+
   '<div class="card" style="text-align:center;border-top:4px solid '+k.color+'">'+
-    avatar(k,'lg')+'<div style="height:8px"></div>'+
+    '<div class="photo-tap" data-photo="'+k.id+'">'+avatar(k,'lg')+'<span class="cam-badge">📷</span></div><div style="height:8px"></div>'+
     '<div style="font-size:20px;font-weight:800">'+esc(k.name)+'</div>'+
     '<div class="hint" style="margin-top:2px">'+esc(k.grade||'')+(k.age!==''&&k.age!=null?(k.grade?' · ':'')+k.age+' years':'')+'</div>'+
     '<div class="kid-loc '+(home?'loc-home':'loc-away')+'" style="margin-top:10px;font-size:12.5px">'+(home?'🏡 At home today':'✈️ At '+esc(k.otherHome||'other home')+' today')+'</div>'+
@@ -926,13 +939,29 @@ function docSheet(kidId, key){
   }
 }
 
+/* ---- Profile photo for a person ---- */
+function photoSheet(pid){
+  var p=byId(pid); var first=p.name.split(' ')[0];
+  openSheet(
+    '<div class="sheet-title">Photo — '+esc(first)+'</div>'+
+    '<div class="hint" style="margin:0 2px 14px">🔒 Saved on this phone only. This becomes '+esc(first)+'\'s little picture across the app.</div>'+
+    (p.photo?'<div style="text-align:center;margin-bottom:14px"><div class="avatar lg" style="width:130px;height:130px;margin:0 auto;background-image:url('+p.photo+')"></div></div>':'')+
+    '<label class="btn soft" style="display:flex;align-items:center;justify-content:center;cursor:pointer">📷 '+(p.photo?'Change photo':'Take / choose photo')+'<input id="pfFile" type="file" accept="image/*" style="display:none"></label>'+
+    (p.photo?'<div style="height:10px"></div><button class="btn danger" id="pfDel">Remove photo</button>':'')+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Close</button>'
+  );
+  document.getElementById('pfFile').onchange=function(){ var f=this.files[0]; if(!f)return;
+    resizeImage(f,function(dataUrl){ p.photo=dataUrl; save(); closeSheet(); render(); }, 640); };
+  if(p.photo) document.getElementById('pfDel').onclick=function(){ if(!confirm('Remove '+first+'\'s photo?'))return; delete p.photo; save(); closeSheet(); render(); };
+}
+
 /* ---- Image resize (keeps storage small) ---- */
-function resizeImage(file, cb){
+function resizeImage(file, cb, maxArg){
   var reader=new FileReader();
   reader.onload=function(){
     var img=new Image();
     img.onload=function(){
-      var max=1280, w=img.width, h=img.height;
+      var max=maxArg||1280, w=img.width, h=img.height;
       if(w>h && w>max){ h=Math.round(h*max/w); w=max; }
       else if(h>=w && h>max){ w=Math.round(w*max/h); h=max; }
       var c=document.createElement('canvas'); c.width=w; c.height=h;
@@ -1001,6 +1030,7 @@ document.getElementById('screen').addEventListener('click',function(e){
   if(t=e.target.closest('[data-day]')){ view.calSel=t.getAttribute('data-day'); render(); return; }
   if(t=e.target.closest('[data-cal]')){ shiftMonth(+t.getAttribute('data-cal')); return; }
   if(t=e.target.closest('[data-schedule]')) return editSchedule(t.getAttribute('data-schedule'));
+  if(t=e.target.closest('[data-photo]')) return photoSheet(t.getAttribute('data-photo'));
   if(t=e.target.closest('[data-doc]')){ var a=t.getAttribute('data-doc').split('|'); return docSheet(a[0],a[1]); }
   if(t=e.target.closest('[data-addkid]')) return editPerson(null);
   if(t=e.target.closest('[data-delkid]')) return removeKid(t.getAttribute('data-delkid'));
