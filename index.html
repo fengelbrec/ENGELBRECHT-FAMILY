@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Engelbrecht"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="theme-color" content="#2E3B66"/>
+<link rel="apple-touch-icon" href="logo.png"/>
+<link rel="icon" href="logo.png"/>
+<title>Ferdi &amp; Ane Engelbrecht</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F2F1F6;color:#20232E;font-size:15px;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+
+/* ---------- Layout ---------- */
+#app{max-width:640px;margin:0 auto;min-height:100vh;background:#F2F1F6;position:relative}
+.screen{padding:16px 15px 110px}
+.topbar{background:linear-gradient(135deg,#2E3B66,#4A5892);color:#fff;padding:15px 18px 16px;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,0.08);border-bottom:3px solid #C9A227}
+.topbar-row{display:flex;align-items:center;justify-content:space-between;gap:11px}
+
+/* Family crest */
+.crest-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;background:#F3ECDB;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.18)}
+.crest-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.crest-wrap.full img{object-fit:contain}
+.crest-fb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:linear-gradient(135deg,#2E3B66,#5563A0);font-family:Georgia,'Times New Roman',serif}
+.tb-crest{width:38px;height:38px;border:2px solid #C9A227}
+.tb-title{font-size:19px;font-weight:800;letter-spacing:0.2px;display:flex;align-items:center;gap:9px}
+.tb-sub{font-size:12.5px;color:rgba(255,255,255,0.72);margin-top:3px}
+.tb-back{background:rgba(255,255,255,0.16);border:none;color:#fff;border-radius:9px;height:38px;min-width:44px;padding:0 13px;font-size:14px;font-weight:700;cursor:pointer;display:none;align-items:center;gap:5px}
+.tb-back.show{display:inline-flex}
+.tb-btn{background:rgba(255,255,255,0.16);border:none;color:#fff;border-radius:9px;height:38px;padding:0 13px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+
+/* ---------- Bottom tab bar ---------- */
+.tabbar{position:fixed;bottom:0;left:0;right:0;max-width:640px;margin:0 auto;background:#fff;border-top:1px solid #E4E2EC;display:flex;z-index:60;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;background:none;border:none;padding:9px 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:#9A98A8;font-size:10.5px;font-weight:600}
+.tab .ico{font-size:21px;line-height:1}
+.tab.sel{color:#3E4C7A}
+.tab.sel .ico{transform:translateY(-1px)}
+
+/* ---------- Cards & bits ---------- */
+.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 3px rgba(30,30,60,0.06);margin-bottom:13px}
+.card-tight{padding:0;overflow:hidden}
+.sec-lbl{font-size:11px;font-weight:800;color:#8C8AA0;letter-spacing:1.2px;text-transform:uppercase;margin:20px 2px 10px}
+.sec-lbl:first-child{margin-top:4px}
+.muted{color:#8C8AA0}
+.pill{display:inline-block;border-radius:20px;padding:3px 11px;font-size:11.5px;font-weight:700}
+.row{display:flex;align-items:center;gap:12px}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.12)}
+.avatar.sm{width:30px;height:30px;font-size:12px}
+.avatar.lg{width:74px;height:74px;font-size:28px}
+.hint{font-size:12.5px;color:#8C8AA0;line-height:1.55}
+
+/* buttons */
+.btn{width:100%;height:50px;border:none;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;background:#3E4C7A;color:#fff}
+.btn:active{opacity:0.85}
+.btn.ghost{background:#fff;color:#3E4C7A;border:1.5px solid #D6D4E4}
+.btn.soft{background:#EAE9F4;color:#3E4C7A}
+.btn.danger{background:#fff;color:#C0392B;border:1.5px solid #F0C9C4}
+.btn.sm{height:42px;font-size:14px;border-radius:11px}
+.addbtn{position:fixed;right:calc(50% - 320px + 18px);bottom:78px;width:58px;height:58px;border-radius:50%;background:#3E4C7A;color:#fff;border:none;font-size:30px;font-weight:400;box-shadow:0 6px 18px rgba(62,76,122,0.45);cursor:pointer;z-index:55;display:flex;align-items:center;justify-content:center;line-height:1}
+@media(max-width:660px){.addbtn{right:18px}}
+
+/* ---------- Today ---------- */
+.hero{background:linear-gradient(135deg,#2E3B66,#5E6CA8);color:#fff;border-radius:18px;padding:18px;margin-bottom:14px;border:1px solid rgba(201,162,39,0.35)}
+.hero-top{display:flex;align-items:center;gap:13px;margin-bottom:14px}
+.hero-top .crest-wrap{border:2px solid #C9A227}
+.hero-fam{font-size:11px;font-weight:800;letter-spacing:1.6px;color:#EBD08A}
+.hero-date{font-size:13px;color:rgba(255,255,255,0.82);font-weight:600;margin-top:3px}
+.hero-greet{font-size:22px;font-weight:800;margin-top:2px}
+.hero-count{font-size:13.5px;color:rgba(255,255,255,0.85);margin-top:9px}
+.whos-wrap{display:flex;gap:9px;overflow-x:auto;padding:2px 1px 4px;-webkit-overflow-scrolling:touch}
+.whos-wrap::-webkit-scrollbar{display:none}
+.whos{flex:0 0 auto;text-align:center;width:62px}
+.whos .avatar{margin:0 auto 5px}
+.whos-name{font-size:11.5px;font-weight:700}
+.whos-loc{font-size:10px;font-weight:700;margin-top:2px;border-radius:10px;padding:1px 6px;display:inline-block}
+.loc-home{background:#E4EFE6;color:#3F7A4E}
+.loc-away{background:#FBEEDD;color:#B5741C}
+
+/* event rows */
+.ev{display:flex;gap:12px;padding:13px 15px;border-bottom:1px solid #F0EFF5;align-items:flex-start;cursor:pointer}
+.ev:last-child{border-bottom:none}
+.ev-time{font-size:12px;font-weight:800;color:#3E4C7A;width:52px;flex-shrink:0;padding-top:1px}
+.ev-body{flex:1;min-width:0}
+.ev-title{font-size:14.5px;font-weight:700}
+.ev-meta{font-size:12px;color:#8C8AA0;margin-top:2px}
+.ev-who{display:flex;gap:-6px;margin-top:6px}
+.ev-who .avatar{margin-right:-7px;border:2px solid #fff}
+.ev-cat{width:4px;border-radius:4px;flex-shrink:0;align-self:stretch}
+
+/* ---------- Calendar ---------- */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav{width:40px;height:40px;border-radius:11px;border:none;background:#fff;font-size:18px;font-weight:800;color:#3E4C7A;cursor:pointer;box-shadow:0 1px 3px rgba(30,30,60,0.08)}
+.cal-month{font-size:17px;font-weight:800}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-dow{text-align:center;font-size:10.5px;font-weight:800;color:#A9A7B8;padding-bottom:4px}
+.cal-cell{aspect-ratio:1;background:#fff;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:7px;cursor:pointer;position:relative;border:2px solid transparent}
+.cal-cell.blank{background:transparent;cursor:default}
+.cal-cell.today{border-color:#3E4C7A}
+.cal-cell.sel{background:#3E4C7A}
+.cal-cell.sel .cal-num{color:#fff}
+.cal-num{font-size:13.5px;font-weight:700}
+.cal-cell.dim .cal-num{color:#C7C5D4}
+.cal-dots{display:flex;gap:2.5px;margin-top:4px;flex-wrap:wrap;justify-content:center;max-width:34px}
+.cal-dot{width:6px;height:6px;border-radius:50%}
+.cal-cell.sel .cal-dot{outline:1px solid rgba(255,255,255,0.5)}
+
+/* ---------- Kids grid ---------- */
+.kid-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kid-card{background:#fff;border-radius:16px;padding:16px 14px;text-align:center;cursor:pointer;box-shadow:0 1px 3px rgba(30,30,60,0.06);border-top:4px solid}
+.kid-card .avatar{margin:0 auto 9px}
+.kid-name{font-size:15px;font-weight:800}
+.kid-sub{font-size:12px;color:#8C8AA0;margin-top:2px}
+.kid-loc{margin-top:8px;font-size:11px;font-weight:700;border-radius:10px;padding:2px 9px;display:inline-block}
+
+/* detail info rows */
+.info{display:flex;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #F0EFF5}
+.info:last-child{border-bottom:none}
+.info-k{font-size:13px;color:#8C8AA0;font-weight:600;flex-shrink:0}
+.info-v{font-size:14px;font-weight:700;text-align:right;word-break:break-word}
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.doc{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(30,30,60,0.06);cursor:pointer}
+.doc-thumb{height:96px;background:#EAE9F4 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:30px;color:#B7B5C8}
+.doc-lbl{padding:9px 11px;font-size:12.5px;font-weight:700}
+.doc-lbl small{display:block;color:#9A98A8;font-weight:600;font-size:10.5px;margin-top:1px}
+
+/* ---------- Money ---------- */
+.money-hero{background:linear-gradient(135deg,#2F7D5B,#43A578);color:#fff;border-radius:18px;padding:18px;margin-bottom:14px}
+.money-lbl{font-size:12px;color:rgba(255,255,255,0.82);font-weight:600}
+.money-big{font-size:30px;font-weight:800;margin-top:3px}
+.money-split{display:flex;gap:10px;margin-top:14px}
+.money-split>div{flex:1;background:rgba(255,255,255,0.14);border-radius:12px;padding:10px 12px}
+.money-split .s-lbl{font-size:11px;color:rgba(255,255,255,0.8);font-weight:600}
+.money-split .s-val{font-size:16px;font-weight:800;margin-top:2px}
+.brow{display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid #F0EFF5}
+.brow:last-child{border-bottom:none}
+.bdot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.bname{font-size:14px;font-weight:700}
+.bcat{font-size:11.5px;color:#8C8AA0}
+.bamt{font-size:14.5px;font-weight:800;margin-left:auto}
+.inv{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #F0EFF5;align-items:center;cursor:pointer}
+.inv:last-child{border-bottom:none}
+.inv-thumb{width:46px;height:46px;border-radius:10px;background:#EAE9F4 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:20px;color:#B7B5C8;flex-shrink:0}
+.inv-body{flex:1;min-width:0}
+.inv-title{font-size:14px;font-weight:700}
+.inv-meta{font-size:11.5px;color:#8C8AA0;margin-top:1px}
+.inv-amt{font-size:14px;font-weight:800}
+
+/* ---------- Home ideas ---------- */
+.idea-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.idea-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(30,30,60,0.06);cursor:pointer}
+.idea-photo{width:100%;aspect-ratio:1;background:#EAE9F4 center/cover no-repeat}
+.idea-photo.noimg{display:flex;align-items:center;justify-content:center;font-size:38px;color:#B7B5C8}
+.idea-body{padding:11px 12px}
+.idea-title{font-size:14px;font-weight:800;line-height:1.25}
+.idea-room{display:inline-block;margin-top:5px;font-size:10.5px;font-weight:700;color:#3E4C7A;background:#EAE9F4;border-radius:9px;padding:2px 8px}
+.idea-note{font-size:12px;color:#8C8AA0;margin-top:6px;line-height:1.45}
+
+/* ---------- Modal ---------- */
+.sheet-bg{position:fixed;inset:0;background:rgba(20,20,40,0.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.sheet-bg.show{display:flex}
+.sheet{background:#F2F1F6;width:100%;max-width:640px;border-radius:22px 22px 0 0;max-height:92vh;overflow-y:auto;padding:8px 16px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.sheet-grab{width:40px;height:5px;border-radius:3px;background:#D6D4E4;margin:8px auto 10px}
+.sheet-title{font-size:18px;font-weight:800;margin-bottom:14px;padding:0 2px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12.5px;font-weight:700;color:#6C6A80;margin-bottom:6px;padding-left:2px}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid #DEDCEA;border-radius:12px;padding:13px 14px;font-size:15px;font-family:inherit;background:#fff;color:#20232E}
+.field input:focus,.field select,.field textarea:focus{outline:none;border-color:#3E4C7A}
+.field textarea{min-height:70px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid #DEDCEA;background:#fff;border-radius:20px;padding:8px 13px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;color:#6C6A80}
+.chip.on{border-color:transparent;color:#fff}
+.chip .avatar{width:22px;height:22px;font-size:10px;margin-left:-4px}
+.seg{display:flex;background:#EAE9F4;border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:none;background:none;padding:9px;border-radius:9px;font-size:13.5px;font-weight:700;color:#6C6A80;cursor:pointer;font-family:inherit}
+.seg button.on{background:#fff;color:#3E4C7A;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+
+.empty{text-align:center;padding:38px 20px;color:#A9A7B8}
+.empty .e-ico{font-size:40px;margin-bottom:8px}
+.empty .e-txt{font-size:13.5px;line-height:1.6}
+
+/* PIN pad */
+.pin-wrap{text-align:center;padding:30px 20px}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin:20px 0 26px}
+.pin-dot{width:15px;height:15px;border-radius:50%;background:#D6D4E4}
+.pin-dot.on{background:#3E4C7A}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:280px;margin:0 auto}
+.pin-key{height:64px;border-radius:16px;border:none;background:#fff;font-size:24px;font-weight:700;color:#20232E;cursor:pointer;box-shadow:0 1px 3px rgba(30,30,60,0.08)}
+.pin-key:active{background:#EAE9F4}
+.pin-key.blank{background:none;box-shadow:none;cursor:default}
+.imgview{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;display:none;flex-direction:column}
+.imgview.show{display:flex}
+.imgview img{max-width:100%;max-height:100%;margin:auto;object-fit:contain}
+.imgview .close{position:absolute;top:14px;right:16px;background:rgba(255,255,255,0.2);color:#fff;border:none;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-row">
+      <button class="tb-back" id="backBtn">‹ Back</button>
+      <span class="crest-wrap tb-crest" id="tbCrest"><span class="crest-fb" style="font-size:16px">E</span><img src="logo.png" alt="Engelbrecht crest" onerror="this.style.display='none'"></span>
+      <div style="flex:1;min-width:0">
+        <div class="tb-title" id="tbTitle">Ferdi &amp; Ane Engelbrecht</div>
+        <div class="tb-sub" id="tbSub">The Engelbrecht family</div>
+      </div>
+      <button class="tb-btn" id="tbAction" style="display:none"></button>
+    </div>
+  </div>
+  <div class="screen" id="screen"></div>
+  <button class="addbtn" id="addBtn" style="display:none">+</button>
+  <div class="tabbar" id="tabbar"></div>
+</div>
+
+<div class="sheet-bg" id="sheetBg"><div class="sheet" id="sheet"></div></div>
+<div class="imgview" id="imgView"><button class="close" id="imgClose">✕</button></div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   Family Hub — one simple portal for Ferdi & Ane's family.
+   All data is stored on THIS phone only (localStorage).
+   Nothing is uploaded to the internet.
+   ========================================================= */
+
+var PALETTE = ['#3E4C7A','#C56B8E','#2F7D5B','#D4923B','#7B5EA7','#3C91A6','#C0553B','#5B8C3E'];
+
+var _uidSeq=1;
+function uid(){ return 'x'+Math.floor(Math.random()*1e9).toString(36)+(_uidSeq++); }
+
+/* ---------- Default data (first run) ---------- */
+function seed(){
+  var people = [
+    { role:'parent', name:'Ferdi',       nick:'Dad', color:'#3E4C7A' },
+    { role:'parent', name:'Ane',         nick:'Mum', color:'#C56B8E' },
+    { role:'child',  name:'Ethan',       age:18, grade:'Grade 12', color:'#2F7D5B' },
+    { role:'child',  name:'Enan',        age:16, grade:'Grade 10', color:'#D4923B' },
+    { role:'child',  name:'Christopher', age:15, grade:'Grade 9',  color:'#7B5EA7' },
+    { role:'child',  name:'Liam',        age:14, grade:'Grade 8',  color:'#3C91A6' },
+    { role:'child',  name:'Libby',       age:10, grade:'Grade 4',  color:'#C0553B' },
+    { role:'child',  name:'Christiaan',  age:'', grade:'',         color:'#5B8C3E' }
+  ];
+  people.forEach(function(p){
+    p.id = uid();
+    p.medicalAid=''; p.medicalAidNo=''; p.school=''; p.allergies=''; p.doctor='';
+    p.notes=''; p.docs={};            // docs: {passport, schoolCard, medicalCard, other}
+    if(p.role==='child'){ p.otherHome='Other home'; p.awayDays=[]; }  // 0=Sun..6=Sat
+  });
+  return {
+    _seq:1,
+    people: people,
+    events: [],
+    budget: [],
+    invoices: [],
+    ideas: [],
+    parentPIN: '',           // empty = not set yet
+    calMonth: null,          // set at runtime
+    settings:{ familyName:'Our Family' }
+  };
+}
+
+/* ---------- Persistence ---------- */
+var KEY='familyHub.v1';
+var state;
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){ state=JSON.parse(raw); if(!state.ideas) state.ideas=[]; return; }
+  }catch(e){}
+  state=seed();
+  save();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ alert('Could not save — the phone storage may be full (large photos take space).'); } }
+
+/* ---------- Small helpers ---------- */
+function byId(id){ for(var i=0;i<state.people.length;i++) if(state.people[i].id===id) return state.people[i]; return null; }
+function esc(s){ return (s==null?'':(''+s)).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function initials(name){ var w=(name||'').trim().split(/\s+/); return ((w[0]||'')[0]||'?').toUpperCase()+((w[1]||'')[0]||'').toUpperCase(); }
+function avatar(p,cls){ if(!p) return ''; return '<div class="avatar '+(cls||'')+'" style="background:'+p.color+'">'+esc(initials(p.name))+'</div>'; }
+function children(){ return state.people.filter(function(p){return p.role==='child';}); }
+function logoBadge(px, contain){ return '<span class="crest-wrap'+(contain?' full':'')+'" style="width:'+px+'px;height:'+px+'px">'+
+  '<span class="crest-fb" style="font-size:'+Math.round(px*0.42)+'px">E</span>'+
+  '<img src="logo.png" alt="Engelbrecht family crest" onerror="this.style.display=\'none\'"></span>'; }
+function parents(){ return state.people.filter(function(p){return p.role==='parent';}); }
+
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var CATS={
+  school:{label:'School',color:'#3E4C7A',ico:'🎒'},
+  sport:{label:'Sport',color:'#2F7D5B',ico:'⚽'},
+  medical:{label:'Medical',color:'#C0553B',ico:'🩺'},
+  family:{label:'Family',color:'#C56B8E',ico:'🏡'},
+  handover:{label:'Handover',color:'#D4923B',ico:'🔄'},
+  other:{label:'Other',color:'#7B5EA7',ico:'📌'}
+};
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function todayStr(){ return ymd(new Date()); }
+function parseYMD(s){ var a=(s||'').split('-'); return new Date(+a[0], (+a[1]||1)-1, +a[2]||1); }
+function prettyDate(s){ var d=parseYMD(s); return DOW[d.getDay()]+', '+d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3); }
+function pretty12(t){ if(!t) return ''; var a=t.split(':'),h=+a[0],m=a[1]; var ap=h<12?'am':'pm'; var hh=h%12; if(hh===0)hh=12; return hh+':'+m+ap; }
+function money(n){ n=+n||0; return 'R'+n.toLocaleString('en-ZA',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+
+/* Where is a child on a given date? true = at our home */
+function isHome(child, dateStr){
+  if(child.role!=='child') return true;
+  var dow=parseYMD(dateStr).getDay();
+  return (child.awayDays||[]).indexOf(dow)===-1;
+}
+function eventsOn(dateStr){
+  return state.events.filter(function(e){return e.date===dateStr;})
+    .sort(function(a,b){ return (a.time||'99')<(b.time||'99')?-1:1; });
+}
+
+/* =========================================================
+   Navigation state
+   ========================================================= */
+var view={ tab:'today', kid:null };
+var TABS=[
+  {id:'today',    ico:'📅', label:'Today'},
+  {id:'calendar', ico:'🗓️', label:'Calendar'},
+  {id:'kids',     ico:'👦', label:'Kids'},
+  {id:'ideas',    ico:'💡', label:'Ideas'},
+  {id:'money',    ico:'💰', label:'Money'}
+];
+var moneyUnlocked=false;
+
+function go(tab){ view.tab=tab; view.kid=null; if(tab!=='money') {} render(); window.scrollTo(0,0); }
+
+/* =========================================================
+   Render
+   ========================================================= */
+function render(){
+  // tab bar
+  document.getElementById('tabbar').innerHTML = TABS.map(function(t){
+    return '<button class="tab '+(view.tab===t.id?'sel':'')+'" data-tab="'+t.id+'"><span class="ico">'+t.ico+'</span>'+t.label+'</button>';
+  }).join('');
+
+  var back=document.getElementById('backBtn');
+  var addBtn=document.getElementById('addBtn');
+  var tbAction=document.getElementById('tbAction');
+  var crest=document.getElementById('tbCrest');
+  back.classList.remove('show'); addBtn.style.display='none'; tbAction.style.display='none';
+  var showBack=(view.tab==='kids'&&view.kid);
+  if(crest) crest.style.display = showBack ? 'none' : 'inline-flex';
+
+  var scr=document.getElementById('screen');
+  if(view.tab==='today'){ setTop('Ferdi &amp; Ane Engelbrecht','The Engelbrecht family'); scr.innerHTML=viewToday(); addBtn.style.display='flex'; }
+  else if(view.tab==='calendar'){ setTop('🗓️ Calendar','Tap a day to see or add'); scr.innerHTML=viewCalendar(); addBtn.style.display='flex'; }
+  else if(view.tab==='kids'){
+    if(view.kid){ var k=byId(view.kid); setTop(esc(k.name), (k.grade||'')+(k.age!==''&&k.age!=null?(k.grade?' · ':'')+'Age '+k.age:'')); back.classList.add('show'); scr.innerHTML=viewKid(k);
+      tbAction.style.display='inline-flex'; tbAction.innerHTML='✏️ Edit'; tbAction.onclick=function(){ editPerson(k.id); }; }
+    else { setTop('👦 The Kids','Tap a child for their details'); scr.innerHTML=viewKids(); }
+  }
+  else if(view.tab==='ideas'){ setTop('💡 Home Ideas','Ideas for the house'); scr.innerHTML=viewIdeas(); addBtn.style.display='flex'; }
+  else if(view.tab==='money'){
+    if(!moneyUnlocked){ setTop('💰 Money','Private — parents only'); scr.innerHTML=''; openPIN(); return; }
+    setTop('💰 Money','Budget & invoices'); scr.innerHTML=viewMoney(); addBtn.style.display='flex';
+  }
+}
+function setTop(t,s){ document.getElementById('tbTitle').innerHTML=t; document.getElementById('tbSub').textContent=s||''; }
+
+/* ---------- TODAY ---------- */
+function viewToday(){
+  var t=todayStr(); var d=new Date();
+  var hr=d.getHours(); var greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  var evs=eventsOn(t);
+  var kids=children();
+  var homeCount=kids.filter(function(k){return isHome(k,t);}).length;
+
+  var whos = state.people.map(function(p){
+    var home = p.role==='parent' ? true : isHome(p,t);
+    var loc = p.role==='parent' ? '' : '<div class="whos-loc '+(home?'loc-home':'loc-away')+'">'+(home?'Here':'Away')+'</div>';
+    return '<div class="whos">'+avatar(p)+'<div class="whos-name">'+esc(p.nick||p.name.split(' ')[0])+'</div>'+loc+'</div>';
+  }).join('');
+
+  var evHtml = evs.length ? evs.map(eventRow).join('') :
+    '<div class="empty"><div class="e-ico">☀️</div><div class="e-txt">Nothing scheduled today.<br>Tap + to add something.</div></div>';
+
+  var upcoming = upcomingList(t, 6);
+
+  return ''+
+  '<div class="hero">'+
+    '<div class="hero-top">'+logoBadge(56,true)+
+      '<div><div class="hero-fam">THE ENGELBRECHT FAMILY</div>'+
+      '<div class="hero-date">'+DOW[d.getDay()]+', '+d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()+'</div></div>'+
+    '</div>'+
+    '<div class="hero-greet">'+greet+'! 👋</div>'+
+    '<div class="hero-count">'+evs.length+' event'+(evs.length===1?'':'s')+' today · '+homeCount+' of '+kids.length+' kids home</div>'+
+  '</div>'+
+  '<div class="sec-lbl">Who\'s home today</div>'+
+  '<div class="card"><div class="whos-wrap">'+whos+'</div></div>'+
+  '<div class="sec-lbl">Today\'s plan</div>'+
+  '<div class="card card-tight">'+evHtml+'</div>'+
+  (upcoming ? '<div class="sec-lbl">Coming up</div><div class="card card-tight">'+upcoming+'</div>' : '');
+}
+
+function eventRow(e){
+  var cat=CATS[e.cat]||CATS.other;
+  var who=(e.people||[]).map(function(id){var p=byId(id);return p?avatar(p,'sm'):'';}).join('');
+  var loc=e.house?'<div class="ev-meta">📍 '+esc(e.house)+'</div>':'';
+  return '<div class="ev" data-ev="'+e.id+'">'+
+    '<div class="ev-cat" style="background:'+cat.color+'"></div>'+
+    '<div class="ev-time">'+(e.time?pretty12(e.time):'All&nbsp;day')+'</div>'+
+    '<div class="ev-body">'+
+      '<div class="ev-title">'+cat.ico+' '+esc(e.title)+'</div>'+
+      (e.notes?'<div class="ev-meta">'+esc(e.notes)+'</div>':'')+ loc+
+      (who?'<div class="ev-who">'+who+'</div>':'')+
+    '</div></div>';
+}
+
+function upcomingList(fromStr, max){
+  var future=state.events.filter(function(e){return e.date>fromStr;})
+    .sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:((a.time||'99')<(b.time||'99')?-1:1); })
+    .slice(0,max);
+  if(!future.length) return '';
+  return future.map(function(e){
+    var cat=CATS[e.cat]||CATS.other;
+    var who=(e.people||[]).map(function(id){var p=byId(id);return p?avatar(p,'sm'):'';}).join('');
+    return '<div class="ev" data-ev="'+e.id+'">'+
+      '<div class="ev-cat" style="background:'+cat.color+'"></div>'+
+      '<div class="ev-time" style="width:auto;min-width:52px">'+prettyDate(e.date)+'</div>'+
+      '<div class="ev-body"><div class="ev-title">'+cat.ico+' '+esc(e.title)+'</div>'+
+      '<div class="ev-meta">'+(e.time?pretty12(e.time):'All day')+'</div>'+
+      (who?'<div class="ev-who">'+who+'</div>':'')+'</div></div>';
+  }).join('');
+}
+
+/* ---------- CALENDAR ---------- */
+function viewCalendar(){
+  if(!state.calMonth){ var n=new Date(); state.calMonth=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
+  var parts=state.calMonth.split('-'); var yy=+parts[0], mm=+parts[1]-1;
+  var first=new Date(yy,mm,1); var startDow=first.getDay(); var days=new Date(yy,mm+1,0).getDate();
+  var today=todayStr();
+  var sel=view.calSel||today;
+
+  var cells='';
+  for(var i=0;i<startDow;i++) cells+='<div class="cal-cell blank"></div>';
+  for(var dn=1;dn<=days;dn++){
+    var ds=yy+'-'+String(mm+1).padStart(2,'0')+'-'+String(dn).padStart(2,'0');
+    var evs=eventsOn(ds);
+    var dots=evs.slice(0,4).map(function(e){var c=CATS[e.cat]||CATS.other;return '<span class="cal-dot" style="background:'+c.color+'"></span>';}).join('');
+    var cls='cal-cell'; if(ds===today)cls+=' today'; if(ds===sel)cls+=' sel';
+    cells+='<div class="'+cls+'" data-day="'+ds+'"><span class="cal-num">'+dn+'</span><div class="cal-dots">'+dots+'</div></div>';
+  }
+
+  var dowRow=DOW.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
+  var selEvs=eventsOn(sel);
+  var kidsAway=children().filter(function(k){return !isHome(k,sel);});
+  var awayNote = kidsAway.length ? '<div class="card" style="padding:12px 15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="hint" style="font-weight:700">Away this day:</span>'+kidsAway.map(function(k){return avatar(k,'sm');}).join('')+'</div>' : '';
+  var selHtml = selEvs.length ? selEvs.map(eventRow).join('') :
+    '<div class="empty"><div class="e-ico">🗓️</div><div class="e-txt">No events on this day.<br>Tap + to add one.</div></div>';
+
+  return ''+
+  '<div class="cal-head">'+
+    '<button class="cal-nav" data-cal="-1">‹</button>'+
+    '<div class="cal-month">'+MONTHS[mm]+' '+yy+'</div>'+
+    '<button class="cal-nav" data-cal="1">›</button>'+
+  '</div>'+
+  '<div class="cal-grid">'+dowRow+cells+'</div>'+
+  '<div class="sec-lbl">'+prettyDate(sel)+'</div>'+ awayNote+
+  '<div class="card card-tight">'+selHtml+'</div>';
+}
+
+/* ---------- KIDS ---------- */
+function viewKids(){
+  var t=todayStr();
+  var grid=children().map(function(k){
+    var home=isHome(k,t);
+    return '<div class="kid-card" data-kid="'+k.id+'" style="border-top-color:'+k.color+'">'+
+      avatar(k,'lg')+
+      '<div class="kid-name">'+esc(k.name)+'</div>'+
+      '<div class="kid-sub">'+esc(k.grade||'—')+(k.age!==''&&k.age!=null?' · '+k.age+' yrs':'')+'</div>'+
+      '<div class="kid-loc '+(home?'loc-home':'loc-away')+'">'+(home?'🏡 Home today':'✈️ '+esc(k.otherHome||'Away'))+'</div>'+
+    '</div>';
+  }).join('');
+  return '<div class="hint" style="margin:2px 2px 14px">Each child has their own page — school info, medical aid, passport and where they are this week. Documents stay on this phone only.</div>'+
+    '<div class="kid-grid">'+grid+'</div>'+
+    '<div style="height:14px"></div><button class="btn ghost sm" data-addkid="1">＋ Add a child</button>';
+}
+
+function viewKid(k){
+  var t=todayStr();
+  var home=isHome(k,t);
+  var awayLabels=(k.awayDays||[]).slice().sort().map(function(d){return DOW[d];}).join(', ');
+  var docsDefs=[
+    {key:'schoolCard',ico:'🎒',label:'School card',sub:'Annual card'},
+    {key:'medicalCard',ico:'🩺',label:'Medical aid',sub:'Card / number'},
+    {key:'passport',ico:'🛂',label:'Passport',sub:'ID copy'},
+    {key:'other',ico:'📄',label:'Other',sub:'Any document'}
+  ];
+  var docs=docsDefs.map(function(d){
+    var img=k.docs&&k.docs[d.key];
+    var thumb = img ? '<div class="doc-thumb" style="background-image:url('+img+')"></div>' : '<div class="doc-thumb">'+d.ico+'</div>';
+    return '<div class="doc" data-doc="'+k.id+'|'+d.key+'">'+thumb+
+      '<div class="doc-lbl">'+d.label+'<small>'+(img?'Tap to view':'Tap to add')+'</small></div></div>';
+  }).join('');
+
+  var kidEvs=state.events.filter(function(e){return (e.people||[]).indexOf(k.id)!==-1 && e.date>=t;})
+    .sort(function(a,b){return a.date<b.date?-1:1;}).slice(0,5);
+  var evHtml = kidEvs.length ? kidEvs.map(function(e){
+    var cat=CATS[e.cat]||CATS.other;
+    return '<div class="ev" data-ev="'+e.id+'"><div class="ev-cat" style="background:'+cat.color+'"></div>'+
+      '<div class="ev-time" style="width:auto;min-width:52px">'+prettyDate(e.date)+'</div>'+
+      '<div class="ev-body"><div class="ev-title">'+cat.ico+' '+esc(e.title)+'</div>'+
+      '<div class="ev-meta">'+(e.time?pretty12(e.time):'All day')+'</div></div></div>';
+  }).join('') : '<div style="padding:15px" class="hint">No upcoming events for '+esc(k.name.split(' ')[0])+'.</div>';
+
+  function info(kk,v){ return '<div class="info"><div class="info-k">'+kk+'</div><div class="info-v">'+(v?esc(v):'<span class="muted">—</span>')+'</div></div>'; }
+
+  return ''+
+  '<div class="card" style="text-align:center;border-top:4px solid '+k.color+'">'+
+    avatar(k,'lg')+'<div style="height:8px"></div>'+
+    '<div style="font-size:20px;font-weight:800">'+esc(k.name)+'</div>'+
+    '<div class="hint" style="margin-top:2px">'+esc(k.grade||'')+(k.age!==''&&k.age!=null?(k.grade?' · ':'')+k.age+' years':'')+'</div>'+
+    '<div class="kid-loc '+(home?'loc-home':'loc-away')+'" style="margin-top:10px;font-size:12.5px">'+(home?'🏡 At home today':'✈️ At '+esc(k.otherHome||'other home')+' today')+'</div>'+
+  '</div>'+
+
+  '<div class="sec-lbl">Where '+esc(k.name.split(' ')[0])+' stays</div>'+
+  '<div class="card">'+
+    '<div class="spread"><div><div style="font-weight:700">Away days each week</div>'+
+    '<div class="hint">'+(awayLabels?'At '+esc(k.otherHome||'other home')+': '+awayLabels:'Home every day — no away days set')+'</div></div>'+
+    '<button class="btn soft sm" style="width:auto;padding:0 16px" data-schedule="'+k.id+'">Edit</button></div>'+
+  '</div>'+
+
+  '<div class="sec-lbl">Documents (on this phone only)</div>'+
+  '<div class="doc-grid">'+docs+'</div>'+
+
+  '<div class="sec-lbl">Info</div>'+
+  '<div class="card card-tight">'+
+    info('School',k.school)+
+    info('Grade',k.grade)+
+    info('Medical aid',k.medicalAid)+
+    info('Medical aid no.',k.medicalAidNo)+
+    info('Doctor',k.doctor)+
+    info('Allergies',k.allergies)+
+    (k.notes?info('Notes',k.notes):'')+
+  '</div>'+
+
+  '<div class="sec-lbl">'+esc(k.name.split(' ')[0])+'\'s upcoming</div>'+
+  '<div class="card card-tight">'+evHtml+'</div>'+
+  '<div style="height:6px"></div>'+
+  '<button class="btn danger sm" data-delkid="'+k.id+'">Remove '+esc(k.name.split(' ')[0])+'</button>';
+}
+
+/* ---------- MONEY ---------- */
+function viewMoney(){
+  var income=state.budget.filter(function(b){return b.type==='income';}).reduce(function(s,b){return s+(+b.amount||0);},0);
+  var expense=state.budget.filter(function(b){return b.type==='expense';}).reduce(function(s,b){return s+(+b.amount||0);},0);
+  var left=income-expense;
+
+  var seg='<div class="seg" style="margin-bottom:14px"><button class="'+(view.moneyTab!=='invoices'?'on':'')+'" data-mtab="budget">Budget</button><button class="'+(view.moneyTab==='invoices'?'on':'')+'" data-mtab="invoices">Invoices</button></div>';
+
+  if(view.moneyTab==='invoices'){
+    var invHtml = state.invoices.length ? state.invoices.slice().sort(function(a,b){return a.date<b.date?1:-1;}).map(function(v){
+      var thumb=v.photo?'<div class="inv-thumb" style="background-image:url('+v.photo+')"></div>':'<div class="inv-thumb">🧾</div>';
+      return '<div class="inv" data-inv="'+v.id+'">'+thumb+
+        '<div class="inv-body"><div class="inv-title">'+esc(v.title||'Invoice')+'</div>'+
+        '<div class="inv-meta">'+prettyDate(v.date)+(v.notes?' · '+esc(v.notes):'')+'</div></div>'+
+        '<div class="inv-amt">'+(v.amount?money(v.amount):'')+'</div></div>';
+    }).join('') : '<div class="empty"><div class="e-ico">🧾</div><div class="e-txt">No invoices yet.<br>Tap + to snap or upload a bill.</div></div>';
+    return seg+
+      '<div class="hint" style="margin:0 2px 12px">Snap a photo of any bill and keep it here. Later we can set up emailing invoices in, like Power Rock.</div>'+
+      '<div class="card card-tight">'+invHtml+'</div>';
+  }
+
+  // budget
+  var rows = state.budget.length ? state.budget.slice().sort(function(a,b){return a.type<b.type?1:-1;}).map(function(b){
+    var col=b.type==='income'?'#2F7D5B':'#C0553B';
+    return '<div class="brow" data-bud="'+b.id+'"><span class="bdot" style="background:'+col+'"></span>'+
+      '<div><div class="bname">'+esc(b.label)+'</div><div class="bcat">'+(b.type==='income'?'Income':'Expense')+(b.cat?' · '+esc(b.cat):'')+'</div></div>'+
+      '<div class="bamt" style="color:'+col+'">'+(b.type==='income'?'+':'−')+money(b.amount)+'</div></div>';
+  }).join('') : '<div class="empty"><div class="e-ico">💰</div><div class="e-txt">No budget items yet.<br>Tap + to add income or an expense.</div></div>';
+
+  return seg+
+  '<div class="money-hero">'+
+    '<div class="money-lbl">Left this month</div>'+
+    '<div class="money-big">'+money(left)+'</div>'+
+    '<div class="money-split">'+
+      '<div><div class="s-lbl">Income</div><div class="s-val">'+money(income)+'</div></div>'+
+      '<div><div class="s-lbl">Expenses</div><div class="s-val">'+money(expense)+'</div></div>'+
+    '</div>'+
+  '</div>'+
+  '<div class="sec-lbl">Budget items</div>'+
+  '<div class="card card-tight">'+rows+'</div>';
+}
+
+/* ---------- HOME IDEAS ---------- */
+function viewIdeas(){
+  if(!state.ideas.length){
+    return '<div class="hint" style="margin:2px 2px 14px">Snap or upload pictures of renovation ideas for the home — a kitchen, a colour, a garden layout — and add a note. You and Ane can build up your wish-list here.</div>'+
+      '<div class="empty"><div class="e-ico">💡</div><div class="e-txt">No ideas yet.<br>Tap + to add your first one.</div></div>';
+  }
+  var cards=state.ideas.slice().sort(function(a,b){return a.date<b.date?1:-1;}).map(function(it){
+    var img=it.photo?'<div class="idea-photo" style="background-image:url('+it.photo+')"></div>':'<div class="idea-photo noimg">💡</div>';
+    return '<div class="idea-card" data-idea="'+it.id+'">'+img+
+      '<div class="idea-body"><div class="idea-title">'+esc(it.title||'Idea')+'</div>'+
+      (it.room?'<div class="idea-room">'+esc(it.room)+'</div>':'')+
+      (it.notes?'<div class="idea-note">'+esc(it.notes)+'</div>':'')+'</div></div>';
+  }).join('');
+  return '<div class="hint" style="margin:2px 2px 14px">Your home wish-list. Tap any idea to edit or view it full screen.</div>'+
+    '<div class="idea-grid">'+cards+'</div>';
+}
+
+/* =========================================================
+   Sheets (modals)
+   ========================================================= */
+var sheetBg=document.getElementById('sheetBg'), sheetEl=document.getElementById('sheet');
+function openSheet(html){ sheetEl.innerHTML='<div class="sheet-grab"></div>'+html; sheetBg.classList.add('show'); }
+function closeSheet(){ sheetBg.classList.remove('show'); }
+sheetBg.addEventListener('click',function(e){ if(e.target===sheetBg) closeSheet(); });
+
+function fieldVal(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+
+/* ---- Add / edit EVENT ---- */
+function editEvent(id){
+  var e = id ? state.events.filter(function(x){return x.id===id;})[0] : null;
+  var isNew=!e;
+  if(!e){ e={ id:null, date:(view.tab==='calendar'&&view.calSel)?view.calSel:todayStr(), time:'', title:'', cat:'family', people:[], house:'', notes:'' }; }
+
+  var catChips=Object.keys(CATS).map(function(k){
+    var c=CATS[k]; var on=e.cat===k;
+    return '<button type="button" class="chip'+(on?' on':'')+'" data-cat="'+k+'" style="'+(on?'background:'+c.color+';':'')+'">'+c.ico+' '+c.label+'</button>';
+  }).join('');
+  var peopleChips=state.people.map(function(p){
+    var on=(e.people||[]).indexOf(p.id)!==-1;
+    return '<button type="button" class="chip'+(on?' on':'')+'" data-person="'+p.id+'" style="'+(on?'background:'+p.color+';':'')+'">'+avatar(p,'sm')+esc(p.nick||p.name.split(' ')[0])+'</button>';
+  }).join('');
+
+  openSheet(
+    '<div class="sheet-title">'+(isNew?'Add event':'Edit event')+'</div>'+
+    '<div class="field"><label>What is it?</label><input id="evTitle" placeholder="e.g. Soccer practice" value="'+esc(e.title)+'"></div>'+
+    '<div class="field" style="display:flex;gap:10px"><div style="flex:1"><label>Date</label><input id="evDate" type="date" value="'+esc(e.date)+'"></div>'+
+      '<div style="flex:1"><label>Time (optional)</label><input id="evTime" type="time" value="'+esc(e.time)+'"></div></div>'+
+    '<div class="field"><label>Type</label><div class="chips" id="catChips">'+catChips+'</div></div>'+
+    '<div class="field"><label>Who\'s involved</label><div class="chips" id="peopleChips">'+peopleChips+'</div></div>'+
+    '<div class="field"><label>Where (optional)</label><input id="evHouse" placeholder="e.g. School / Dad\'s house" value="'+esc(e.house)+'"></div>'+
+    '<div class="field"><label>Notes (optional)</label><textarea id="evNotes" placeholder="Anything to remember">'+esc(e.notes)+'</textarea></div>'+
+    '<button class="btn" id="saveEv">'+(isNew?'Add to calendar':'Save changes')+'</button>'+
+    (isNew?'':'<div style="height:10px"></div><button class="btn danger" id="delEv">Delete event</button>')+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Cancel</button>'
+  );
+
+  var draft={ cat:e.cat, people:(e.people||[]).slice() };
+  document.getElementById('catChips').onclick=function(ev){ var b=ev.target.closest('[data-cat]'); if(!b)return; draft.cat=b.getAttribute('data-cat');
+    [].forEach.call(this.children,function(c){c.classList.remove('on');c.style.background='';});
+    b.classList.add('on'); b.style.background=CATS[draft.cat].color; };
+  document.getElementById('peopleChips').onclick=function(ev){ var b=ev.target.closest('[data-person]'); if(!b)return; var pid=b.getAttribute('data-person');
+    var i=draft.people.indexOf(pid); var p=byId(pid);
+    if(i===-1){ draft.people.push(pid); b.classList.add('on'); b.style.background=p.color; }
+    else{ draft.people.splice(i,1); b.classList.remove('on'); b.style.background=''; } };
+
+  document.getElementById('saveEv').onclick=function(){
+    var title=fieldVal('evTitle'); if(!title){ alert('Please give the event a name.'); return; }
+    var rec={ id:e.id||uid(), title:title, date:fieldVal('evDate')||todayStr(), time:fieldVal('evTime'),
+      cat:draft.cat, people:draft.people, house:fieldVal('evHouse'), notes:fieldVal('evNotes') };
+    if(isNew) state.events.push(rec);
+    else{ for(var i=0;i<state.events.length;i++) if(state.events[i].id===e.id) state.events[i]=rec; }
+    save(); closeSheet(); render();
+  };
+  if(!isNew) document.getElementById('delEv').onclick=function(){ if(!confirm('Delete this event?'))return;
+    state.events=state.events.filter(function(x){return x.id!==e.id;}); save(); closeSheet(); render(); };
+}
+
+/* ---- Add / edit PERSON ---- */
+function editPerson(id){
+  var p = id ? byId(id) : null; var isNew=!p;
+  if(!p){ p={ id:null, role:'child', name:'', nick:'', age:'', grade:'', color:PALETTE[state.people.length%PALETTE.length],
+    school:'', medicalAid:'', medicalAidNo:'', doctor:'', allergies:'', notes:'', otherHome:'Other home', awayDays:[], docs:{} }; }
+
+  var colorDots=PALETTE.map(function(c){ return '<button type="button" class="chip" data-color="'+c+'" style="width:38px;height:38px;padding:0;border-radius:50%;background:'+c+';border:'+(p.color===c?'3px solid #20232E':'2px solid #fff')+'"></button>'; }).join('');
+  var isChild=p.role==='child';
+
+  openSheet(
+    '<div class="sheet-title">'+(isNew?'Add person':'Edit '+esc(p.name.split(' ')[0]))+'</div>'+
+    '<div class="field"><label>Name</label><input id="pName" placeholder="First name" value="'+esc(p.name)+'"></div>'+
+    '<div class="field"><label>Short name / nickname (optional)</label><input id="pNick" placeholder="e.g. Dad, Libs" value="'+esc(p.nick||'')+'"></div>'+
+    (isChild?
+      '<div class="field" style="display:flex;gap:10px"><div style="flex:1"><label>Age</label><input id="pAge" type="number" inputmode="numeric" value="'+esc(p.age)+'"></div>'+
+      '<div style="flex:2"><label>Grade</label><input id="pGrade" placeholder="e.g. Grade 8" value="'+esc(p.grade)+'"></div></div>'+
+      '<div class="field"><label>School</label><input id="pSchool" value="'+esc(p.school)+'"></div>'+
+      '<div class="field"><label>Other home name</label><input id="pOther" placeholder="e.g. Dad\'s house" value="'+esc(p.otherHome||'')+'"></div>'+
+      '<div class="field"><label>Medical aid</label><input id="pMed" placeholder="Scheme name" value="'+esc(p.medicalAid)+'"></div>'+
+      '<div class="field"><label>Medical aid number</label><input id="pMedNo" value="'+esc(p.medicalAidNo)+'"></div>'+
+      '<div class="field"><label>Doctor</label><input id="pDoc" value="'+esc(p.doctor)+'"></div>'+
+      '<div class="field"><label>Allergies</label><input id="pAll" placeholder="None / list them" value="'+esc(p.allergies)+'"></div>'
+      :'')+
+    '<div class="field"><label>Notes (optional)</label><textarea id="pNotes">'+esc(p.notes)+'</textarea></div>'+
+    '<div class="field"><label>Colour</label><div class="chips" id="colorPick">'+colorDots+'</div></div>'+
+    '<button class="btn" id="savePerson">'+(isNew?'Add person':'Save changes')+'</button>'+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Cancel</button>'
+  );
+
+  var chosen={color:p.color};
+  document.getElementById('colorPick').onclick=function(ev){ var b=ev.target.closest('[data-color]'); if(!b)return; chosen.color=b.getAttribute('data-color');
+    [].forEach.call(this.children,function(c){c.style.border='2px solid #fff';}); b.style.border='3px solid #20232E'; };
+
+  document.getElementById('savePerson').onclick=function(){
+    var name=fieldVal('pName'); if(!name){ alert('Please enter a name.'); return; }
+    p.name=name; p.nick=fieldVal('pNick'); p.notes=fieldVal('pNotes'); p.color=chosen.color;
+    if(isChild){ p.age=fieldVal('pAge'); p.grade=fieldVal('pGrade'); p.school=fieldVal('pSchool');
+      p.otherHome=fieldVal('pOther')||'Other home'; p.medicalAid=fieldVal('pMed'); p.medicalAidNo=fieldVal('pMedNo');
+      p.doctor=fieldVal('pDoc'); p.allergies=fieldVal('pAll'); }
+    if(isNew){ p.id=uid(); if(!p.docs)p.docs={}; state.people.push(p); }
+    save(); closeSheet(); render();
+  };
+}
+
+/* ---- Child away-days schedule ---- */
+function editSchedule(id){
+  var k=byId(id); var away=(k.awayDays||[]).slice();
+  var chips=DOW.map(function(d,i){ var on=away.indexOf(i)!==-1;
+    return '<button type="button" class="chip'+(on?' on':'')+'" data-d="'+i+'" style="'+(on?'background:#D4923B;':'')+'flex:1;justify-content:center">'+d+'</button>';
+  }).join('');
+  openSheet(
+    '<div class="sheet-title">'+esc(k.name.split(' ')[0])+'\'s week</div>'+
+    '<div class="hint" style="margin:0 2px 14px">Tap the days '+esc(k.name.split(' ')[0])+' is at their other home. Those days show as "Away" on the calendar and front page.</div>'+
+    '<div class="field"><label>Other home name</label><input id="schHome" value="'+esc(k.otherHome||'')+'"></div>'+
+    '<div class="field"><label>Away days</label><div class="chips" id="dayChips" style="gap:6px">'+chips+'</div></div>'+
+    '<button class="btn" id="saveSch">Save</button>'+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Cancel</button>'
+  );
+  document.getElementById('dayChips').onclick=function(ev){ var b=ev.target.closest('[data-d]'); if(!b)return; var d=+b.getAttribute('data-d');
+    var i=away.indexOf(d); if(i===-1){away.push(d);b.classList.add('on');b.style.background='#D4923B';} else{away.splice(i,1);b.classList.remove('on');b.style.background='';} };
+  document.getElementById('saveSch').onclick=function(){ k.awayDays=away.sort(); k.otherHome=fieldVal('schHome')||'Other home'; save(); closeSheet(); render(); };
+}
+
+/* ---- Budget item ---- */
+function editBudget(id){
+  var b = id ? state.budget.filter(function(x){return x.id===id;})[0] : null; var isNew=!b;
+  if(!b){ b={ id:null, type:'expense', label:'', amount:'', cat:'' }; }
+  openSheet(
+    '<div class="sheet-title">'+(isNew?'Add budget item':'Edit item')+'</div>'+
+    '<div class="field"><label>Type</label><div class="seg" id="budType"><button class="'+(b.type==='income'?'on':'')+'" data-t="income">Income</button><button class="'+(b.type==='expense'?'on':'')+'" data-t="expense">Expense</button></div></div>'+
+    '<div class="field"><label>What is it?</label><input id="budLabel" placeholder="e.g. Salary / School fees" value="'+esc(b.label)+'"></div>'+
+    '<div class="field"><label>Amount (Rand)</label><input id="budAmt" type="number" inputmode="decimal" placeholder="0" value="'+esc(b.amount)+'"></div>'+
+    '<div class="field"><label>Category (optional)</label><input id="budCat" placeholder="e.g. Home, School, Car" value="'+esc(b.cat||'')+'"></div>'+
+    '<button class="btn" id="saveBud">'+(isNew?'Add item':'Save')+'</button>'+
+    (isNew?'':'<div style="height:10px"></div><button class="btn danger" id="delBud">Delete</button>')+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Cancel</button>'
+  );
+  var t={v:b.type};
+  document.getElementById('budType').onclick=function(ev){ var x=ev.target.closest('[data-t]'); if(!x)return; t.v=x.getAttribute('data-t');
+    [].forEach.call(this.children,function(c){c.classList.remove('on');}); x.classList.add('on'); };
+  document.getElementById('saveBud').onclick=function(){
+    var label=fieldVal('budLabel'); if(!label){alert('Please name the item.');return;}
+    var rec={ id:b.id||uid(), type:t.v, label:label, amount:fieldVal('budAmt'), cat:fieldVal('budCat') };
+    if(isNew) state.budget.push(rec); else{ for(var i=0;i<state.budget.length;i++) if(state.budget[i].id===b.id) state.budget[i]=rec; }
+    save(); closeSheet(); render();
+  };
+  if(!isNew) document.getElementById('delBud').onclick=function(){ if(!confirm('Delete this item?'))return;
+    state.budget=state.budget.filter(function(x){return x.id!==b.id;}); save(); closeSheet(); render(); };
+}
+
+/* ---- Invoice ---- */
+function editInvoice(id){
+  var v = id ? state.invoices.filter(function(x){return x.id===id;})[0] : null; var isNew=!v;
+  if(!v){ v={ id:null, title:'', date:todayStr(), amount:'', notes:'', photo:'' }; }
+  openSheet(
+    '<div class="sheet-title">'+(isNew?'Add invoice':'Invoice')+'</div>'+
+    '<div class="field"><label>Photo of the bill</label>'+
+      '<div id="invPreview" style="'+(v.photo?'':'display:none;')+'margin-bottom:10px"><img src="'+(v.photo||'')+'" style="width:100%;border-radius:12px"></div>'+
+      '<label class="btn soft sm" style="display:flex;align-items:center;justify-content:center;cursor:pointer">📷 '+(v.photo?'Change photo':'Take / choose photo')+'<input id="invPhoto" type="file" accept="image/*" style="display:none"></label>'+
+    '</div>'+
+    '<div class="field"><label>What is it?</label><input id="invTitle" placeholder="e.g. Woolworths / Plumber" value="'+esc(v.title)+'"></div>'+
+    '<div class="field" style="display:flex;gap:10px"><div style="flex:1"><label>Date</label><input id="invDate" type="date" value="'+esc(v.date)+'"></div>'+
+      '<div style="flex:1"><label>Amount (R)</label><input id="invAmt" type="number" inputmode="decimal" value="'+esc(v.amount)+'"></div></div>'+
+    '<div class="field"><label>Notes (optional)</label><textarea id="invNotes">'+esc(v.notes)+'</textarea></div>'+
+    '<button class="btn" id="saveInv">'+(isNew?'Save invoice':'Save')+'</button>'+
+    (isNew?'':'<div style="height:10px"></div><button class="btn danger" id="delInv">Delete</button>')+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Cancel</button>'
+  );
+  var photoData={v:v.photo||''};
+  document.getElementById('invPhoto').onchange=function(){ var f=this.files[0]; if(!f)return;
+    resizeImage(f,function(dataUrl){ photoData.v=dataUrl; var pv=document.getElementById('invPreview'); pv.style.display='block'; pv.innerHTML='<img src="'+dataUrl+'" style="width:100%;border-radius:12px">'; }); };
+  document.getElementById('saveInv').onclick=function(){
+    var rec={ id:v.id||uid(), title:fieldVal('invTitle')||'Invoice', date:fieldVal('invDate')||todayStr(),
+      amount:fieldVal('invAmt'), notes:fieldVal('invNotes'), photo:photoData.v };
+    if(isNew) state.invoices.push(rec); else{ for(var i=0;i<state.invoices.length;i++) if(state.invoices[i].id===v.id) state.invoices[i]=rec; }
+    save(); closeSheet(); render();
+  };
+  if(!isNew) document.getElementById('delInv').onclick=function(){ if(!confirm('Delete this invoice?'))return;
+    state.invoices=state.invoices.filter(function(x){return x.id!==v.id;}); save(); closeSheet(); render(); };
+}
+
+/* ---- Home idea ---- */
+function editIdea(id){
+  var it = id ? state.ideas.filter(function(x){return x.id===id;})[0] : null; var isNew=!it;
+  if(!it){ it={ id:null, title:'', room:'', notes:'', photo:'', date:todayStr() }; }
+  openSheet(
+    '<div class="sheet-title">'+(isNew?'Add home idea':'Home idea')+'</div>'+
+    '<div class="field"><label>Picture of the idea</label>'+
+      '<div id="ideaPreview" style="'+(it.photo?'':'display:none;')+'margin-bottom:10px"><img src="'+(it.photo||'')+'" style="width:100%;border-radius:12px"></div>'+
+      '<label class="btn soft sm" style="display:flex;align-items:center;justify-content:center;cursor:pointer">📷 '+(it.photo?'Change picture':'Take / choose picture')+'<input id="ideaPhoto" type="file" accept="image/*" style="display:none"></label>'+
+    '</div>'+
+    '<div class="field"><label>Title</label><input id="ideaTitle" placeholder="e.g. New kitchen island" value="'+esc(it.title)+'"></div>'+
+    '<div class="field"><label>Room / area (optional)</label><input id="ideaRoom" placeholder="e.g. Kitchen, Garden, Braai" value="'+esc(it.room||'')+'"></div>'+
+    '<div class="field"><label>Notes (optional)</label><textarea id="ideaNotes" placeholder="Colour, cost, where you saw it...">'+esc(it.notes)+'</textarea></div>'+
+    '<button class="btn" id="saveIdea">'+(isNew?'Save idea':'Save')+'</button>'+
+    (isNew?'':'<div style="height:10px"></div><button class="btn ghost" id="viewIdea">View picture full screen</button><div style="height:10px"></div><button class="btn danger" id="delIdea">Delete idea</button>')+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Cancel</button>'
+  );
+  var photoData={v:it.photo||''};
+  document.getElementById('ideaPhoto').onchange=function(){ var f=this.files[0]; if(!f)return;
+    resizeImage(f,function(dataUrl){ photoData.v=dataUrl; var pv=document.getElementById('ideaPreview'); pv.style.display='block'; pv.innerHTML='<img src="'+dataUrl+'" style="width:100%;border-radius:12px">'; }); };
+  document.getElementById('saveIdea').onclick=function(){
+    var title=fieldVal('ideaTitle'); if(!title && !photoData.v){ alert('Add a picture or a title first.'); return; }
+    var rec={ id:it.id||uid(), title:title||'Idea', room:fieldVal('ideaRoom'), notes:fieldVal('ideaNotes'), photo:photoData.v, date:it.date||todayStr() };
+    if(isNew) state.ideas.push(rec); else{ for(var i=0;i<state.ideas.length;i++) if(state.ideas[i].id===it.id) state.ideas[i]=rec; }
+    save(); closeSheet(); render();
+  };
+  if(!isNew){
+    document.getElementById('viewIdea').onclick=function(){ if(photoData.v){ closeSheet(); openImage(photoData.v); } else alert('No picture on this idea yet.'); };
+    document.getElementById('delIdea').onclick=function(){ if(!confirm('Delete this idea?'))return;
+      state.ideas=state.ideas.filter(function(x){return x.id!==it.id;}); save(); closeSheet(); render(); };
+  }
+}
+
+/* ---- Document capture for a child ---- */
+function docSheet(kidId, key){
+  var k=byId(kidId); var labels={schoolCard:'School card',medicalCard:'Medical aid card',passport:'Passport',other:'Document'};
+  var cur=k.docs&&k.docs[key];
+  openSheet(
+    '<div class="sheet-title">'+labels[key]+' — '+esc(k.name.split(' ')[0])+'</div>'+
+    '<div class="hint" style="margin:0 2px 14px">🔒 This photo is saved on this phone only. It is never uploaded anywhere.</div>'+
+    (cur?'<div style="margin-bottom:12px"><img src="'+cur+'" style="width:100%;border-radius:14px" data-full="'+key+'"></div>':'')+
+    '<label class="btn soft" style="display:flex;align-items:center;justify-content:center;cursor:pointer">📷 '+(cur?'Replace photo':'Take / choose photo')+'<input id="docFile" type="file" accept="image/*" style="display:none"></label>'+
+    (cur?'<div style="height:10px"></div><button class="btn ghost" id="viewDoc">View full screen</button><div style="height:10px"></div><button class="btn danger" id="delDoc">Remove photo</button>':'')+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Close</button>'
+  );
+  document.getElementById('docFile').onchange=function(){ var f=this.files[0]; if(!f)return;
+    resizeImage(f,function(dataUrl){ if(!k.docs)k.docs={}; k.docs[key]=dataUrl; save(); closeSheet(); render(); }); };
+  if(cur){
+    document.getElementById('viewDoc').onclick=function(){ closeSheet(); openImage(cur); };
+    document.getElementById('delDoc').onclick=function(){ if(!confirm('Remove this photo?'))return; delete k.docs[key]; save(); closeSheet(); render(); };
+  }
+}
+
+/* ---- Image resize (keeps storage small) ---- */
+function resizeImage(file, cb){
+  var reader=new FileReader();
+  reader.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      var max=1280, w=img.width, h=img.height;
+      if(w>h && w>max){ h=Math.round(h*max/w); w=max; }
+      else if(h>=w && h>max){ w=Math.round(w*max/h); h=max; }
+      var c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      try{ cb(c.toDataURL('image/jpeg',0.72)); }catch(e){ cb(reader.result); }
+    };
+    img.onerror=function(){ cb(reader.result); };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---- Full-screen image viewer ---- */
+var imgView=document.getElementById('imgView');
+function openImage(src){ imgView.innerHTML='<button class="close" id="imgClose">✕</button><img src="'+src+'">'; imgView.classList.add('show');
+  document.getElementById('imgClose').onclick=function(){ imgView.classList.remove('show'); }; }
+imgView.addEventListener('click',function(e){ if(e.target===imgView) imgView.classList.remove('show'); });
+
+/* ---- PIN for Money ---- */
+function openPIN(){
+  var entered='';
+  var need = state.parentPIN ? 'Enter parents\' PIN' : 'Create a 4-digit PIN';
+  function draw(){
+    var dots=[0,1,2,3].map(function(i){return '<div class="pin-dot '+(i<entered.length?'on':'')+'"></div>';}).join('');
+    var keys='';
+    ['1','2','3','4','5','6','7','8','9','','0','⌫'].forEach(function(k){
+      if(k==='') keys+='<div class="pin-key blank"></div>';
+      else keys+='<button class="pin-key" data-k="'+k+'">'+k+'</button>';
+    });
+    document.getElementById('screen').innerHTML=
+      '<div class="pin-wrap"><div style="font-size:38px">🔒</div>'+
+      '<div style="font-size:17px;font-weight:800;margin-top:8px">'+need+'</div>'+
+      '<div class="hint" style="margin-top:4px">'+(state.parentPIN?'The budget and invoices are private.':'You\'ll use this to open the Money area.')+'</div>'+
+      '<div class="pin-dots">'+dots+'</div><div class="pin-pad">'+keys+'</div>'+
+      '<div style="height:24px"></div><button class="btn ghost" id="pinCancel" style="max-width:200px;margin:0 auto">Back to Today</button></div>';
+    document.getElementById('pinCancel').onclick=function(){ go('today'); };
+    [].forEach.call(document.querySelectorAll('[data-k]'),function(b){ b.onclick=function(){
+      var k=b.getAttribute('data-k');
+      if(k==='⌫'){ entered=entered.slice(0,-1); draw(); return; }
+      if(entered.length<4){ entered+=k; }
+      if(entered.length===4){
+        if(state.parentPIN){ if(entered===state.parentPIN){ moneyUnlocked=true; render(); } else { entered=''; draw(); setTimeout(function(){alert('Wrong PIN. Try again.');},50); } }
+        else { state.parentPIN=entered; save(); moneyUnlocked=true; render(); }
+      } else draw();
+    }; });
+  }
+  draw();
+}
+
+/* =========================================================
+   Global click handling
+   ========================================================= */
+document.getElementById('tabbar').addEventListener('click',function(e){ var b=e.target.closest('[data-tab]'); if(b) go(b.getAttribute('data-tab')); });
+document.getElementById('backBtn').addEventListener('click',function(){ if(view.tab==='kids'&&view.kid){ view.kid=null; render(); } });
+document.getElementById('addBtn').addEventListener('click',function(){
+  if(view.tab==='today'||view.tab==='calendar') editEvent(null);
+  else if(view.tab==='ideas') editIdea(null);
+  else if(view.tab==='money'){ if(view.moneyTab==='invoices') editInvoice(null); else editBudget(null); }
+});
+
+document.getElementById('screen').addEventListener('click',function(e){
+  var t;
+  if(t=e.target.closest('[data-tab]')) return go(t.getAttribute('data-tab'));
+  if(t=e.target.closest('[data-kid]')){ view.kid=t.getAttribute('data-kid'); render(); window.scrollTo(0,0); return; }
+  if(t=e.target.closest('[data-ev]')) return editEvent(t.getAttribute('data-ev'));
+  if(t=e.target.closest('[data-day]')){ view.calSel=t.getAttribute('data-day'); render(); return; }
+  if(t=e.target.closest('[data-cal]')){ shiftMonth(+t.getAttribute('data-cal')); return; }
+  if(t=e.target.closest('[data-schedule]')) return editSchedule(t.getAttribute('data-schedule'));
+  if(t=e.target.closest('[data-doc]')){ var a=t.getAttribute('data-doc').split('|'); return docSheet(a[0],a[1]); }
+  if(t=e.target.closest('[data-addkid]')) return editPerson(null);
+  if(t=e.target.closest('[data-delkid]')) return removeKid(t.getAttribute('data-delkid'));
+  if(t=e.target.closest('[data-mtab]')){ view.moneyTab=t.getAttribute('data-mtab'); render(); return; }
+  if(t=e.target.closest('[data-bud]')) return editBudget(t.getAttribute('data-bud'));
+  if(t=e.target.closest('[data-inv]')) return editInvoice(t.getAttribute('data-inv'));
+  if(t=e.target.closest('[data-idea]')) return editIdea(t.getAttribute('data-idea'));
+});
+sheetEl.addEventListener('click',function(e){
+  var t; if(t=e.target.closest('[data-close]')) return closeSheet();
+  if(t=e.target.closest('[data-full]')){ /* handled inline */ }
+});
+
+function shiftMonth(delta){
+  var p=state.calMonth.split('-'); var d=new Date(+p[0],+p[1]-1+delta,1);
+  state.calMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  view.calSel=null; render();
+}
+function removeKid(id){ var k=byId(id); if(!confirm('Remove '+k.name+' from the app? Their info and documents will be deleted from this phone.'))return;
+  state.people=state.people.filter(function(p){return p.id!==id;});
+  state.events.forEach(function(e){ e.people=(e.people||[]).filter(function(x){return x!==id;}); });
+  save(); view.kid=null; render(); }
+
+/* =========================================================
+   Boot
+   ========================================================= */
+load();
+render();
+</script>
+</body>
+</html>
