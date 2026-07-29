@@ -26,7 +26,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .crest-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .crest-wrap.full img{object-fit:contain}
 .crest-fb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:linear-gradient(135deg,#2E3B66,#5563A0);font-family:Georgia,'Times New Roman',serif}
-.tb-crest{width:38px;height:38px;border:2px solid #C9A227}
+.tb-crest{width:38px;height:38px;border:2px solid #C9A227;cursor:pointer}
 .tb-title{font-size:19px;font-weight:800;letter-spacing:0.2px;display:flex;align-items:center;gap:9px}
 .tb-sub{font-size:12.5px;color:rgba(255,255,255,0.72);margin-top:3px}
 .tb-back{background:rgba(255,255,255,0.16);border:none;color:#fff;border-radius:9px;height:38px;min-width:44px;padding:0 13px;font-size:14px;font-weight:700;cursor:pointer;display:none;align-items:center;gap:5px}
@@ -79,7 +79,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .hero-count{font-size:13.5px;color:rgba(255,255,255,0.85);margin-top:9px}
 .whos-wrap{display:flex;gap:9px;overflow-x:auto;padding:2px 1px 4px;-webkit-overflow-scrolling:touch}
 .whos-wrap::-webkit-scrollbar{display:none}
-.whos{flex:0 0 auto;text-align:center;width:62px}
+.whos{flex:0 0 auto;text-align:center;width:62px;cursor:pointer}
+.whos:active{opacity:0.6}
+.wu{cursor:pointer}
 .whos .avatar{margin:0 auto 5px}
 .whos-name{font-size:11.5px;font-weight:700}
 .whos-loc{font-size:10px;font-weight:700;margin-top:2px;border-radius:10px;padding:1px 6px;display:inline-block}
@@ -325,9 +327,10 @@ function avatar(p,cls){ if(!p) return '';
   if(p.photo) return '<div class="avatar '+(cls||'')+'" style="background-image:url('+p.photo+')"></div>';
   return '<div class="avatar '+(cls||'')+'" style="background:'+p.color+'">'+esc(initials(p.name))+'</div>'; }
 function children(){ return state.people.filter(function(p){return p.role==='child';}); }
-function logoBadge(px, contain){ return '<span class="crest-wrap'+(contain?' full':'')+'" style="width:'+px+'px;height:'+px+'px">'+
+function logoBadge(px){ var src=(state&&state.appLogo)||'logo.png';
+  return '<span class="crest-wrap" style="width:'+px+'px;height:'+px+'px">'+
   '<span class="crest-fb" style="font-size:'+Math.round(px*0.42)+'px">E</span>'+
-  '<img src="logo.png" alt="Engelbrecht family crest" onerror="this.style.display=\'none\'"></span>'; }
+  '<img src="'+src+'" alt="Engelbrecht family" onerror="this.style.display=\'none\'"></span>'; }
 function parents(){ return state.people.filter(function(p){return p.role==='parent';}); }
 
 var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -387,7 +390,7 @@ function eventsOn(dateStr){
 /* =========================================================
    Navigation state
    ========================================================= */
-var view={ tab:'today', kid:null };
+var view={ tab:'today', person:null };
 var TABS=[
   {id:'today',    ico:'📅', label:'Today'},
   {id:'calendar', ico:'🗓️', label:'Calendar'},
@@ -397,7 +400,7 @@ var TABS=[
 ];
 var moneyUnlocked=false;
 
-function go(tab){ view.tab=tab; view.kid=null; if(tab!=='money') {} render(); window.scrollTo(0,0); }
+function go(tab){ view.tab=tab; view.person=null; render(); window.scrollTo(0,0); }
 
 /* =========================================================
    Render
@@ -413,22 +416,54 @@ function render(){
   var tbAction=document.getElementById('tbAction');
   var crest=document.getElementById('tbCrest');
   back.classList.remove('show'); addBtn.style.display='none'; tbAction.style.display='none';
-  var showBack=(view.tab==='kids'&&view.kid);
-  if(crest) crest.style.display = showBack ? 'none' : 'inline-flex';
+  if(crest) crest.innerHTML='<span class="crest-fb" style="font-size:16px">E</span><img src="'+((state&&state.appLogo)||'logo.png')+'" alt="Engelbrecht" onerror="this.style.display=\'none\'">';
 
   var scr=document.getElementById('screen');
+
+  // ---- person detail (child OR parent), reachable from any tab ----
+  if(view.person){
+    var p=byId(view.person);
+    if(!p){ view.person=null; }
+    else{
+      back.classList.add('show'); if(crest) crest.style.display='none';
+      if(p.role==='child'){ setTop(esc(p.name), (p.grade||'')+(p.age!==''&&p.age!=null?(p.grade?' · ':'')+'Age '+p.age:'')); scr.innerHTML=viewKid(p); }
+      else{ setTop(esc(p.name), esc(p.nick||'Parent')); scr.innerHTML=viewParent(p); }
+      tbAction.style.display='inline-flex'; tbAction.innerHTML='✏️ Edit'; tbAction.onclick=function(){ editPerson(p.id); };
+      return;
+    }
+  }
+  if(crest) crest.style.display='inline-flex';
+
   if(view.tab==='today'){ setTop('Ferdi &amp; Ane Engelbrecht','The Engelbrecht family'); scr.innerHTML=viewToday(); addBtn.style.display='flex'; }
   else if(view.tab==='calendar'){ setTop('🗓️ Calendar','Tap a day to see or add'); scr.innerHTML=viewCalendar(); addBtn.style.display='flex'; }
-  else if(view.tab==='kids'){
-    if(view.kid){ var k=byId(view.kid); setTop(esc(k.name), (k.grade||'')+(k.age!==''&&k.age!=null?(k.grade?' · ':'')+'Age '+k.age:'')); back.classList.add('show'); scr.innerHTML=viewKid(k);
-      tbAction.style.display='inline-flex'; tbAction.innerHTML='✏️ Edit'; tbAction.onclick=function(){ editPerson(k.id); }; }
-    else { setTop('👦 The Kids','Tap a child for their details'); scr.innerHTML=viewKids(); }
-  }
+  else if(view.tab==='kids'){ setTop('👦 The Kids','Tap anyone for their details'); scr.innerHTML=viewKids(); }
   else if(view.tab==='ideas'){ setTop('💡 Home Ideas','Ideas for the house'); scr.innerHTML=viewIdeas(); addBtn.style.display='flex'; }
   else if(view.tab==='money'){
     if(!moneyUnlocked){ setTop('💰 Money','Private — parents only'); scr.innerHTML=''; openPIN(); return; }
     setTop('💰 Money','Budget & invoices'); scr.innerHTML=viewMoney(); addBtn.style.display='flex';
   }
+}
+
+/* ---------- PARENT detail ---------- */
+function viewParent(p){
+  var t=todayStr();
+  var evs=state.events.filter(function(e){return (e.people||[]).indexOf(p.id)!==-1 && e.date>=t;})
+    .sort(function(a,b){return a.date<b.date?-1:1;}).slice(0,6);
+  var evHtml = evs.length ? evs.map(function(e){ var cat=CATS[e.cat]||CATS.other;
+    return '<div class="ev" data-ev="'+e.id+'"><div class="ev-cat" style="background:'+cat.color+'"></div>'+
+      '<div class="ev-time" style="width:auto;min-width:52px">'+prettyDate(e.date)+'</div>'+
+      '<div class="ev-body"><div class="ev-title">'+cat.ico+' '+esc(e.title)+'</div>'+
+      '<div class="ev-meta">'+(e.time?pretty12(e.time):'All day')+'</div></div></div>'; }).join('')
+    : '<div style="padding:15px" class="hint">No upcoming events for '+esc(p.name.split(' ')[0])+'.</div>';
+  return ''+
+  '<div class="card" style="text-align:center;border-top:4px solid '+p.color+'">'+
+    '<div class="photo-tap" data-photo="'+p.id+'">'+avatar(p,'lg')+'<span class="cam-badge">📷</span></div><div style="height:8px"></div>'+
+    '<div style="font-size:20px;font-weight:800">'+esc(p.name)+'</div>'+
+    '<div class="hint" style="margin-top:2px">'+esc(p.nick||'Parent')+'</div>'+
+  '</div>'+
+  (p.notes?'<div class="sec-lbl">Notes</div><div class="card"><div class="hint">'+esc(p.notes)+'</div></div>':'')+
+  '<div class="sec-lbl">'+esc(p.name.split(' ')[0])+'\'s upcoming</div>'+
+  '<div class="card card-tight">'+evHtml+'</div>';
 }
 function setTop(t,s){ document.getElementById('tbTitle').innerHTML=t; document.getElementById('tbSub').textContent=s||''; }
 
@@ -440,17 +475,11 @@ function viewToday(){
   var kids=children();
   var homeCount=kids.filter(function(k){return isHome(k,t);}).length;
 
-  var withUs = kids.filter(function(k){return isHome(k,t);});
-  var awayK  = kids.filter(function(k){return !isHome(k,t);});
-  var withUsBlock =
-    '<div class="withus">'+
-      '<div class="withus-head">🏡 With us today</div>'+
-      '<div class="withus-kids">'+
-        (withUs.length ? withUs.map(function(k){return '<span class="wu">'+avatar(k,'sm')+'<span class="wu-n">'+esc(k.name.split(' ')[0])+'</span></span>';}).join('')
-                       : '<span class="hint">Just you &amp; Ane 💛</span>')+
-      '</div>'+
-      (awayK.length ? '<div class="withus-away">Away: '+awayK.map(function(k){return esc(k.name.split(' ')[0]);}).join(', ')+'</div>' : '')+
-    '</div>';
+  var team = state.people.map(function(p){
+    var home = p.role==='parent' ? true : isHome(p,t);
+    var loc = p.role==='parent' ? '' : '<div class="whos-loc '+(home?'loc-home':'loc-away')+'">'+(home?'Here':'Away')+'</div>';
+    return '<div class="whos" data-person="'+p.id+'">'+avatar(p)+'<div class="whos-name">'+esc(p.nick||p.name.split(' ')[0])+'</div>'+loc+'</div>';
+  }).join('');
 
   var evHtml = evs.length ? evs.map(eventRow).join('') :
     '<div class="empty"><div class="e-ico">☀️</div><div class="e-txt">Nothing scheduled today.<br>Tap + to add something.</div></div>';
@@ -459,15 +488,16 @@ function viewToday(){
 
   return ''+
   '<div class="hero">'+
-    '<div class="hero-top">'+logoBadge(56,true)+
+    '<div class="hero-top"><span data-logo="1" style="cursor:pointer">'+logoBadge(56)+'</span>'+
       '<div><div class="hero-fam">THE ENGELBRECHT FAMILY</div>'+
       '<div class="hero-date">'+DOW[d.getDay()]+', '+d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()+'</div></div>'+
     '</div>'+
     '<div class="hero-greet">'+greet+'! 👋</div>'+
-    '<div class="hero-count">'+evs.length+' event'+(evs.length===1?'':'s')+' today · '+homeCount+' of '+kids.length+' kids home</div>'+
+    '<div class="hero-count">'+evs.length+' event'+(evs.length===1?'':'s')+' today · '+homeCount+' of '+kids.length+' with us</div>'+
   '</div>'+
+  '<div class="sec-lbl">The Team</div>'+
+  '<div class="card"><div class="whos-wrap">'+team+'</div></div>'+
   '<div class="sec-lbl">Today\'s plan</div>'+
-  withUsBlock+
   '<div class="card card-tight">'+evHtml+'</div>'+
   (upcoming ? '<div class="sec-lbl">Coming up</div><div class="card card-tight">'+upcoming+'</div>' : '');
 }
@@ -517,10 +547,8 @@ function viewCalendar(){
     var ds=yy+'-'+String(mm+1).padStart(2,'0')+'-'+String(dn).padStart(2,'0');
     var evs=eventsOn(ds);
     var dots=evs.slice(0,4).map(function(e){var c=CATS[e.cat]||CATS.other;return '<span class="cal-dot" style="background:'+c.color+'"></span>';}).join('');
-    var cust=CUSTODY[ds];
-    var tint = (ds===sel)?'' : (cust==='P'?('background:'+GROUPS.A.tint):cust==='B'?('background:'+GROUPS.B.tint):'');
     var cls='cal-cell'; if(ds===today)cls+=' today'; if(ds===sel)cls+=' sel';
-    cells+='<div class="'+cls+'" data-day="'+ds+'"'+(tint?' style="'+tint+'"':'')+'><span class="cal-num">'+dn+'</span><div class="cal-dots">'+dots+'</div></div>';
+    cells+='<div class="'+cls+'" data-day="'+ds+'"><span class="cal-num">'+dn+'</span><div class="cal-dots">'+dots+'</div></div>';
   }
 
   var dowRow=DOW.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
@@ -529,8 +557,8 @@ function viewCalendar(){
   var ci=custodyInfo(sel);
   var custCard = ci ? (
     '<div class="cust-card" style="border-left-color:'+ci.color+'">'+
-      '<div class="cust-head" style="color:'+ci.color+'">🏡 With us: '+esc(ci.names)+'</div>'+
-      '<div class="cust-row">'+(ci.homeKids.length?ci.homeKids.map(function(k){return avatar(k,'sm');}).join(''):'<span class="hint">—</span>')+'</div>'+
+      '<div class="cust-head">🏡 With us on this day</div>'+
+      '<div class="withus-kids">'+(ci.homeKids.length?ci.homeKids.map(function(k){return '<span class="wu" data-person="'+k.id+'">'+avatar(k,'sm')+'<span class="wu-n">'+esc(k.name.split(' ')[0])+'</span></span>';}).join(''):'<span class="hint">—</span>')+'</div>'+
       (ci.awayKids.length?'<div class="cust-away">Away: '+ci.awayKids.map(function(k){return esc(k.name.split(' ')[0]);}).join(', ')+'</div>':'')+
     '</div>') : '';
 
@@ -562,7 +590,7 @@ function viewKids(){
   var t=todayStr();
   var grid=children().map(function(k){
     var home=isHome(k,t);
-    return '<div class="kid-card" data-kid="'+k.id+'" style="border-top-color:'+k.color+'">'+
+    return '<div class="kid-card" data-person="'+k.id+'" style="border-top-color:'+k.color+'">'+
       avatar(k,'lg')+
       '<div class="kid-name">'+esc(k.name)+'</div>'+
       '<div class="kid-sub">'+esc(k.grade||'—')+(k.age!==''&&k.age!=null?' · '+k.age+' yrs':'')+'</div>'+
@@ -571,11 +599,11 @@ function viewKids(){
   }).join('');
   var parentsRow = '<div class="sec-lbl" style="margin-top:2px">Parents</div>'+
     '<div class="card"><div class="parents-row">'+ parents().map(function(p){
-      return '<div class="parent-chip" data-photo="'+p.id+'"><div class="photo-tap">'+avatar(p,'lg')+'<span class="cam-badge">📷</span></div><div class="name">'+esc(p.nick||p.name.split(' ')[0])+'</div></div>';
-    }).join('')+'</div><div class="hint" style="margin-top:11px">Tap a face to add a photo.</div></div>';
+      return '<div class="parent-chip" data-person="'+p.id+'">'+avatar(p,'lg')+'<div class="name">'+esc(p.nick||p.name.split(' ')[0])+'</div></div>';
+    }).join('')+'</div><div class="hint" style="margin-top:11px">Tap a parent for their details.</div></div>';
   return parentsRow+
     '<div class="sec-lbl">The children</div>'+
-    '<div class="hint" style="margin:0 2px 12px">Tap a child for their page — school, medical aid, passport, where they are this week. Tap the photo on their page to add a picture. Everything stays on this phone only.</div>'+
+    '<div class="hint" style="margin:0 2px 12px">Tap anyone for their page — school, medical aid, passport, where they are this week. On their page, tap the photo to add a picture. Everything stays on this phone only.</div>'+
     '<div class="kid-grid">'+grid+'</div>'+
     '<div style="height:14px"></div><button class="btn ghost sm" data-addkid="1">＋ Add a child</button>';
 }
@@ -939,6 +967,22 @@ function docSheet(kidId, key){
   }
 }
 
+/* ---- App logo (the picture at the top) ---- */
+function logoSheet(){
+  var cur=state.appLogo;
+  openSheet(
+    '<div class="sheet-title">Logo at the top</div>'+
+    '<div class="hint" style="margin:0 2px 14px">This is the little picture at the top of the app (and on the calendar). 🔒 Saved on this phone only — not on the public web.</div>'+
+    (cur?'<div style="text-align:center;margin-bottom:14px"><div class="avatar lg" style="width:130px;height:130px;margin:0 auto;border-radius:16px;background-image:url('+cur+')"></div></div>':'')+
+    '<label class="btn soft" style="display:flex;align-items:center;justify-content:center;cursor:pointer">📷 '+(cur?'Change picture':'Choose a picture')+'<input id="logoFile" type="file" accept="image/*" style="display:none"></label>'+
+    (cur?'<div style="height:10px"></div><button class="btn ghost" id="logoReset">Use the family crest instead</button>':'')+
+    '<div style="height:6px"></div><button class="btn ghost" data-close="1">Close</button>'
+  );
+  document.getElementById('logoFile').onchange=function(){ var f=this.files[0]; if(!f)return;
+    resizeImage(f,function(u){ state.appLogo=u; save(); closeSheet(); render(); }, 512); };
+  if(cur) document.getElementById('logoReset').onclick=function(){ delete state.appLogo; save(); closeSheet(); render(); };
+}
+
 /* ---- Profile photo for a person ---- */
 function photoSheet(pid){
   var p=byId(pid); var first=p.name.split(' ')[0];
@@ -1015,7 +1059,8 @@ function openPIN(){
    Global click handling
    ========================================================= */
 document.getElementById('tabbar').addEventListener('click',function(e){ var b=e.target.closest('[data-tab]'); if(b) go(b.getAttribute('data-tab')); });
-document.getElementById('backBtn').addEventListener('click',function(){ if(view.tab==='kids'&&view.kid){ view.kid=null; render(); } });
+document.getElementById('backBtn').addEventListener('click',function(){ if(view.person){ view.person=null; render(); window.scrollTo(0,0); } });
+document.getElementById('tbCrest').addEventListener('click',function(){ if(!view.person) logoSheet(); });
 document.getElementById('addBtn').addEventListener('click',function(){
   if(view.tab==='today'||view.tab==='calendar') editEvent(null);
   else if(view.tab==='ideas') editIdea(null);
@@ -1025,12 +1070,12 @@ document.getElementById('addBtn').addEventListener('click',function(){
 document.getElementById('screen').addEventListener('click',function(e){
   var t;
   if(t=e.target.closest('[data-tab]')) return go(t.getAttribute('data-tab'));
-  if(t=e.target.closest('[data-kid]')){ view.kid=t.getAttribute('data-kid'); render(); window.scrollTo(0,0); return; }
+  if(t=e.target.closest('[data-logo]')) return logoSheet();
+  if(t=e.target.closest('[data-photo]')) return photoSheet(t.getAttribute('data-photo'));
+  if(t=e.target.closest('[data-person]')){ view.person=t.getAttribute('data-person'); render(); window.scrollTo(0,0); return; }
   if(t=e.target.closest('[data-ev]')) return editEvent(t.getAttribute('data-ev'));
   if(t=e.target.closest('[data-day]')){ view.calSel=t.getAttribute('data-day'); render(); return; }
   if(t=e.target.closest('[data-cal]')){ shiftMonth(+t.getAttribute('data-cal')); return; }
-  if(t=e.target.closest('[data-schedule]')) return editSchedule(t.getAttribute('data-schedule'));
-  if(t=e.target.closest('[data-photo]')) return photoSheet(t.getAttribute('data-photo'));
   if(t=e.target.closest('[data-doc]')){ var a=t.getAttribute('data-doc').split('|'); return docSheet(a[0],a[1]); }
   if(t=e.target.closest('[data-addkid]')) return editPerson(null);
   if(t=e.target.closest('[data-delkid]')) return removeKid(t.getAttribute('data-delkid'));
@@ -1052,7 +1097,7 @@ function shiftMonth(delta){
 function removeKid(id){ var k=byId(id); if(!confirm('Remove '+k.name+' from the app? Their info and documents will be deleted from this phone.'))return;
   state.people=state.people.filter(function(p){return p.id!==id;});
   state.events.forEach(function(e){ e.people=(e.people||[]).filter(function(x){return x!==id;}); });
-  save(); view.kid=null; render(); }
+  save(); view.person=null; render(); }
 
 /* =========================================================
    Boot
