@@ -7,8 +7,10 @@
 <meta name="apple-mobile-web-app-title" content="Engelbrecht"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <meta name="theme-color" content="#2E3B66"/>
-<link rel="apple-touch-icon" href="logo.png"/>
-<link rel="icon" href="logo.png"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+<link rel="manifest" href="manifest.webmanifest"/>
 <title>Ferdi &amp; Ane Engelbrecht</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -243,6 +245,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="tb-title" id="tbTitle">Ferdi &amp; Ane Engelbrecht</div>
         <div class="tb-sub" id="tbSub">The Engelbrecht family</div>
       </div>
+      <button class="tb-btn" id="tbUpdate" title="Update to the latest version">⟳</button>
       <button class="tb-btn" id="tbAction" style="display:none"></button>
     </div>
   </div>
@@ -415,7 +418,9 @@ function render(){
   var addBtn=document.getElementById('addBtn');
   var tbAction=document.getElementById('tbAction');
   var crest=document.getElementById('tbCrest');
+  var upd=document.getElementById('tbUpdate');
   back.classList.remove('show'); addBtn.style.display='none'; tbAction.style.display='none';
+  if(upd) upd.style.display='inline-flex';
   if(crest) crest.innerHTML='<span class="crest-fb" style="font-size:16px">E</span><img src="'+((state&&state.appLogo)||'logo.png')+'" alt="Engelbrecht" onerror="this.style.display=\'none\'">';
 
   var scr=document.getElementById('screen');
@@ -425,7 +430,7 @@ function render(){
     var p=byId(view.person);
     if(!p){ view.person=null; }
     else{
-      back.classList.add('show'); if(crest) crest.style.display='none';
+      back.classList.add('show'); if(crest) crest.style.display='none'; if(upd) upd.style.display='none';
       if(p.role==='child'){ setTop(esc(p.name), (p.grade||'')+(p.age!==''&&p.age!=null?(p.grade?' · ':'')+'Age '+p.age:'')); scr.innerHTML=viewKid(p); }
       else{ setTop(esc(p.name), esc(p.nick||'Parent')); scr.innerHTML=viewParent(p); }
       tbAction.style.display='inline-flex'; tbAction.innerHTML='✏️ Edit'; tbAction.onclick=function(){ editPerson(p.id); };
@@ -1061,6 +1066,10 @@ function openPIN(){
 document.getElementById('tabbar').addEventListener('click',function(e){ var b=e.target.closest('[data-tab]'); if(b) go(b.getAttribute('data-tab')); });
 document.getElementById('backBtn').addEventListener('click',function(){ if(view.person){ view.person=null; render(); window.scrollTo(0,0); } });
 document.getElementById('tbCrest').addEventListener('click',function(){ if(!view.person) logoSheet(); });
+document.getElementById('tbUpdate').addEventListener('click',function(){
+  var b=this; b.textContent='…';
+  try{ location.reload(); }catch(e){ location.href=location.pathname; }
+});
 document.getElementById('addBtn').addEventListener('click',function(){
   if(view.tab==='today'||view.tab==='calendar') editEvent(null);
   else if(view.tab==='ideas') editIdea(null);
