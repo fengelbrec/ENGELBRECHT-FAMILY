@@ -81,6 +81,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .loc-home{background:#E4EFE6;color:#3F7A4E}
 .loc-away{background:#FBEEDD;color:#B5741C}
 
+/* With-us-today block */
+.withus{background:#fff;border-radius:14px;padding:12px 15px;margin-bottom:12px;box-shadow:0 1px 3px rgba(30,30,60,0.06);border-left:4px solid #2F7D5B}
+.withus-head{font-size:12px;font-weight:800;color:#3F7A4E;letter-spacing:0.3px;margin-bottom:10px}
+.withus-kids{display:flex;flex-wrap:wrap;gap:13px}
+.wu{display:flex;flex-direction:column;align-items:center;gap:4px;width:46px}
+.wu-n{font-size:11px;font-weight:700}
+.withus-away{font-size:12px;color:#8C8AA0;margin-top:11px;font-weight:600}
+
+/* next-7-days strip (kid page) */
+.d7row{display:flex;gap:6px}
+.d7{flex:1;text-align:center}
+.d7-dow{font-size:10px;font-weight:700;color:#A9A7B8;margin-bottom:5px}
+.d7-box{border-radius:9px;padding:9px 0;font-size:13px;font-weight:800}
+.d7-home{background:#E4EFE6;color:#3F7A4E}
+.d7-away{background:#FBEEDD;color:#B5741C}
+
+/* calendar custody */
+.cal-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cal-top .crest-wrap{border:2px solid #C9A227}
+.cal-fam{font-size:11px;font-weight:800;letter-spacing:1.4px;color:#3E4C7A}
+.cal-legend{display:flex;flex-direction:column;gap:4px;margin-top:5px}
+.lg{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:#6C6A80}
+.lgd{width:12px;height:12px;border-radius:4px;flex-shrink:0}
+.cust-card{background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 3px rgba(30,30,60,0.06);margin-bottom:12px;border-left:4px solid #ccc}
+.cust-head{font-size:12.5px;font-weight:800;margin-bottom:10px}
+.cust-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cust-away{font-size:12px;color:#8C8AA0;margin-top:10px;font-weight:600}
+
 /* event rows */
 .ev{display:flex;gap:12px;padding:13px 15px;border-bottom:1px solid #F0EFF5;align-items:flex-start;cursor:pointer}
 .ev:last-child{border-bottom:none}
@@ -249,7 +277,7 @@ function seed(){
     p.id = uid();
     p.medicalAid=''; p.medicalAidNo=''; p.school=''; p.allergies=''; p.doctor='';
     p.notes=''; p.docs={};            // docs: {passport, schoolCard, medicalCard, other}
-    if(p.role==='child'){ p.otherHome='Other home'; p.awayDays=[]; }  // 0=Sun..6=Sat
+    if(p.role==='child'){ p.otherHome='Other home'; p.awayDays=[]; p.custodyGroup=GROUP_BY_NAME[p.name]||null; }
   });
   return {
     _seq:1,
@@ -270,10 +298,17 @@ var state;
 function load(){
   try{
     var raw=localStorage.getItem(KEY);
-    if(raw){ state=JSON.parse(raw); if(!state.ideas) state.ideas=[]; return; }
+    if(raw){ state=JSON.parse(raw); }
   }catch(e){}
-  state=seed();
-  save();
+  if(!state){ state=seed(); save(); }
+  migrate();
+}
+function migrate(){
+  if(!state.ideas) state.ideas=[];
+  // give existing phones the custody groups (added 2026-07-29)
+  state.people.forEach(function(p){ if(p.role==='child' && !p.custodyGroup && GROUP_BY_NAME[p.name]) p.custodyGroup=GROUP_BY_NAME[p.name]; });
+  // always open the calendar on the current month
+  var n=new Date(); state.calMonth=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ alert('Could not save — the phone storage may be full (large photos take space).'); } }
 
@@ -305,11 +340,37 @@ function prettyDate(s){ var d=parseYMD(s); return DOW[d.getDay()]+', '+d.getDate
 function pretty12(t){ if(!t) return ''; var a=t.split(':'),h=+a[0],m=a[1]; var ap=h<12?'am':'pm'; var hh=h%12; if(hh===0)hh=12; return hh+':'+m+ap; }
 function money(n){ n=+n||0; return 'R'+n.toLocaleString('en-ZA',{minimumFractionDigits:0,maximumFractionDigits:0}); }
 
+/* ---------- Custody schedule (from Ferdi's Excel, Jul–Dec 2026) ----------
+   'P' (pink)  = Enan, Liam & Christiaan are with us  (group A)
+   'B' (blue)  = Ethan, Christopher & Libby are with us (group B)          */
+var CUSTODY = {"2026-07-01":"B","2026-07-02":"B","2026-07-03":"B","2026-07-04":"B","2026-07-05":"B","2026-07-06":"P","2026-07-07":"P","2026-07-08":"P","2026-07-09":"P","2026-07-10":"P","2026-07-11":"P","2026-07-12":"P","2026-07-13":"P","2026-07-14":"P","2026-07-15":"B","2026-07-16":"B","2026-07-17":"B","2026-07-18":"B","2026-07-19":"B","2026-07-20":"P","2026-07-21":"P","2026-07-22":"P","2026-07-23":"B","2026-07-24":"P","2026-07-25":"P","2026-07-26":"P","2026-07-27":"P","2026-07-28":"P","2026-07-29":"P","2026-07-30":"B","2026-07-31":"B","2026-08-01":"B","2026-08-02":"B","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"B","2026-08-07":"P","2026-08-08":"P","2026-08-09":"P","2026-08-10":"P","2026-08-11":"P","2026-08-12":"P","2026-08-13":"B","2026-08-14":"B","2026-08-15":"B","2026-08-16":"B","2026-08-17":"P","2026-08-18":"P","2026-08-19":"P","2026-08-20":"B","2026-08-21":"P","2026-08-22":"P","2026-08-23":"P","2026-08-24":"P","2026-08-25":"P","2026-08-26":"P","2026-08-27":"B","2026-08-28":"B","2026-08-29":"B","2026-08-30":"B","2026-08-31":"P","2026-09-01":"P","2026-09-02":"P","2026-09-03":"B","2026-09-04":"P","2026-09-05":"P","2026-09-06":"P","2026-09-07":"P","2026-09-08":"P","2026-09-09":"P","2026-09-10":"B","2026-09-11":"B","2026-09-12":"B","2026-09-13":"B","2026-09-14":"P","2026-09-15":"P","2026-09-16":"P","2026-09-17":"B","2026-09-18":"P","2026-09-19":"P","2026-09-20":"P","2026-09-21":"P","2026-09-22":"P","2026-09-23":"B","2026-09-24":"B","2026-09-25":"B","2026-09-26":"B","2026-09-27":"B","2026-09-28":"B","2026-09-29":"B","2026-09-30":"P","2026-10-01":"P","2026-10-02":"P","2026-10-03":"P","2026-10-04":"P","2026-10-05":"P","2026-10-06":"P","2026-10-07":"P","2026-10-08":"B","2026-10-09":"B","2026-10-10":"B","2026-10-11":"B","2026-10-12":"P","2026-10-13":"P","2026-10-14":"P","2026-10-15":"B","2026-10-16":"P","2026-10-17":"P","2026-10-18":"P","2026-10-19":"P","2026-10-20":"P","2026-10-21":"P","2026-10-22":"B","2026-10-23":"B","2026-10-24":"B","2026-10-25":"B","2026-10-26":"P","2026-10-27":"P","2026-10-28":"P","2026-10-29":"B","2026-10-30":"P","2026-10-31":"P","2026-11-01":"P","2026-11-02":"P","2026-11-03":"P","2026-11-04":"P","2026-11-05":"B","2026-11-06":"B","2026-11-07":"B","2026-11-08":"B","2026-11-09":"P","2026-11-10":"P","2026-11-11":"P","2026-11-12":"B","2026-11-13":"P","2026-11-14":"P","2026-11-15":"P","2026-11-16":"P","2026-11-17":"P","2026-11-18":"P","2026-11-19":"B","2026-11-20":"B","2026-11-21":"B","2026-11-22":"B","2026-11-23":"P","2026-11-24":"P","2026-11-25":"P","2026-11-26":"B","2026-11-27":"P","2026-11-28":"P","2026-11-29":"P","2026-11-30":"B","2026-12-01":"B","2026-12-02":"B","2026-12-03":"B","2026-12-04":"B","2026-12-05":"B","2026-12-06":"B","2026-12-07":"P","2026-12-08":"P","2026-12-09":"P","2026-12-10":"P","2026-12-11":"P","2026-12-12":"P","2026-12-13":"P","2026-12-14":"P","2026-12-15":"P","2026-12-16":"P","2026-12-17":"B","2026-12-18":"B","2026-12-19":"B","2026-12-20":"B","2026-12-21":"B","2026-12-22":"B","2026-12-23":"B","2026-12-24":"B","2026-12-25":"B","2026-12-26":"B","2026-12-27":"B","2026-12-28":"P","2026-12-29":"P","2026-12-30":"P","2026-12-31":"P"};
+var GROUPS = {
+  A:{ names:'Enan, Liam & Christiaan', color:'#D63FA8', tint:'#FBE4F5' },
+  B:{ names:'Ethan, Christopher & Libby', color:'#0F9BD8', tint:'#E3F2FC' }
+};
+var GROUP_BY_NAME = { Enan:'A', Liam:'A', Christiaan:'A', Ethan:'B', Christopher:'B', Libby:'B' };
+
 /* Where is a child on a given date? true = at our home */
 function isHome(child, dateStr){
   if(child.role!=='child') return true;
-  var dow=parseYMD(dateStr).getDay();
-  return (child.awayDays||[]).indexOf(dow)===-1;
+  var g=child.custodyGroup; if(!g) return true;         // no group set -> assume home
+  var c=CUSTODY[dateStr]; if(!c) return true;           // no schedule for that day -> assume home
+  return (c==='P' && g==='A') || (c==='B' && g==='B');
+}
+/* Which group is with us on a date, as {code,color,tint,names,homeKids,awayKids} or null */
+function custodyInfo(dateStr){
+  var c=CUSTODY[dateStr]; if(!c) return null;
+  var g = (c==='P')?'A':'B';
+  var kids=children();
+  return { code:c, group:g, color:GROUPS[g].color, tint:GROUPS[g].tint, names:GROUPS[g].names,
+    homeKids:kids.filter(function(k){return isHome(k,dateStr);}),
+    awayKids:kids.filter(function(k){return !isHome(k,dateStr);}) };
+}
+function next7strip(k){
+  var base=new Date(); var out='';
+  for(var i=0;i<7;i++){ var d=new Date(base.getFullYear(),base.getMonth(),base.getDate()+i); var ds=ymd(d); var home=isHome(k,ds);
+    out+='<div class="d7"><div class="d7-dow">'+DOW[d.getDay()]+'</div><div class="d7-box '+(home?'d7-home':'d7-away')+'">'+d.getDate()+'</div></div>'; }
+  return out;
 }
 function eventsOn(dateStr){
   return state.events.filter(function(e){return e.date===dateStr;})
@@ -324,7 +385,7 @@ var TABS=[
   {id:'today',    ico:'📅', label:'Today'},
   {id:'calendar', ico:'🗓️', label:'Calendar'},
   {id:'kids',     ico:'👦', label:'Kids'},
-  {id:'ideas',    ico:'💡', label:'Ideas'},
+  {id:'ideas',    ico:'💡', label:'Home Ideas'},
   {id:'money',    ico:'💰', label:'Money'}
 ];
 var moneyUnlocked=false;
@@ -372,11 +433,17 @@ function viewToday(){
   var kids=children();
   var homeCount=kids.filter(function(k){return isHome(k,t);}).length;
 
-  var whos = state.people.map(function(p){
-    var home = p.role==='parent' ? true : isHome(p,t);
-    var loc = p.role==='parent' ? '' : '<div class="whos-loc '+(home?'loc-home':'loc-away')+'">'+(home?'Here':'Away')+'</div>';
-    return '<div class="whos">'+avatar(p)+'<div class="whos-name">'+esc(p.nick||p.name.split(' ')[0])+'</div>'+loc+'</div>';
-  }).join('');
+  var withUs = kids.filter(function(k){return isHome(k,t);});
+  var awayK  = kids.filter(function(k){return !isHome(k,t);});
+  var withUsBlock =
+    '<div class="withus">'+
+      '<div class="withus-head">🏡 With us today</div>'+
+      '<div class="withus-kids">'+
+        (withUs.length ? withUs.map(function(k){return '<span class="wu">'+avatar(k,'sm')+'<span class="wu-n">'+esc(k.name.split(' ')[0])+'</span></span>';}).join('')
+                       : '<span class="hint">Just you &amp; Ane 💛</span>')+
+      '</div>'+
+      (awayK.length ? '<div class="withus-away">Away: '+awayK.map(function(k){return esc(k.name.split(' ')[0]);}).join(', ')+'</div>' : '')+
+    '</div>';
 
   var evHtml = evs.length ? evs.map(eventRow).join('') :
     '<div class="empty"><div class="e-ico">☀️</div><div class="e-txt">Nothing scheduled today.<br>Tap + to add something.</div></div>';
@@ -392,9 +459,8 @@ function viewToday(){
     '<div class="hero-greet">'+greet+'! 👋</div>'+
     '<div class="hero-count">'+evs.length+' event'+(evs.length===1?'':'s')+' today · '+homeCount+' of '+kids.length+' kids home</div>'+
   '</div>'+
-  '<div class="sec-lbl">Who\'s home today</div>'+
-  '<div class="card"><div class="whos-wrap">'+whos+'</div></div>'+
   '<div class="sec-lbl">Today\'s plan</div>'+
+  withUsBlock+
   '<div class="card card-tight">'+evHtml+'</div>'+
   (upcoming ? '<div class="sec-lbl">Coming up</div><div class="card card-tight">'+upcoming+'</div>' : '');
 }
@@ -444,25 +510,43 @@ function viewCalendar(){
     var ds=yy+'-'+String(mm+1).padStart(2,'0')+'-'+String(dn).padStart(2,'0');
     var evs=eventsOn(ds);
     var dots=evs.slice(0,4).map(function(e){var c=CATS[e.cat]||CATS.other;return '<span class="cal-dot" style="background:'+c.color+'"></span>';}).join('');
+    var cust=CUSTODY[ds];
+    var tint = (ds===sel)?'' : (cust==='P'?('background:'+GROUPS.A.tint):cust==='B'?('background:'+GROUPS.B.tint):'');
     var cls='cal-cell'; if(ds===today)cls+=' today'; if(ds===sel)cls+=' sel';
-    cells+='<div class="'+cls+'" data-day="'+ds+'"><span class="cal-num">'+dn+'</span><div class="cal-dots">'+dots+'</div></div>';
+    cells+='<div class="'+cls+'" data-day="'+ds+'"'+(tint?' style="'+tint+'"':'')+'><span class="cal-num">'+dn+'</span><div class="cal-dots">'+dots+'</div></div>';
   }
 
   var dowRow=DOW.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
   var selEvs=eventsOn(sel);
-  var kidsAway=children().filter(function(k){return !isHome(k,sel);});
-  var awayNote = kidsAway.length ? '<div class="card" style="padding:12px 15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="hint" style="font-weight:700">Away this day:</span>'+kidsAway.map(function(k){return avatar(k,'sm');}).join('')+'</div>' : '';
+
+  var ci=custodyInfo(sel);
+  var custCard = ci ? (
+    '<div class="cust-card" style="border-left-color:'+ci.color+'">'+
+      '<div class="cust-head" style="color:'+ci.color+'">🏡 With us: '+esc(ci.names)+'</div>'+
+      '<div class="cust-row">'+(ci.homeKids.length?ci.homeKids.map(function(k){return avatar(k,'sm');}).join(''):'<span class="hint">—</span>')+'</div>'+
+      (ci.awayKids.length?'<div class="cust-away">Away: '+ci.awayKids.map(function(k){return esc(k.name.split(' ')[0]);}).join(', ')+'</div>':'')+
+    '</div>') : '';
+
   var selHtml = selEvs.length ? selEvs.map(eventRow).join('') :
     '<div class="empty"><div class="e-ico">🗓️</div><div class="e-txt">No events on this day.<br>Tap + to add one.</div></div>';
 
-  return ''+
+  var legend =
+    '<div class="cal-top">'+logoBadge(44)+
+      '<div><div class="cal-fam">FAMILY CALENDAR</div>'+
+      '<div class="cal-legend">'+
+        '<span class="lg"><span class="lgd" style="background:'+GROUPS.A.color+'"></span>'+GROUPS.A.names+'</span>'+
+        '<span class="lg"><span class="lgd" style="background:'+GROUPS.B.color+'"></span>'+GROUPS.B.names+'</span>'+
+      '</div></div>'+
+    '</div>';
+
+  return ''+ legend +
   '<div class="cal-head">'+
     '<button class="cal-nav" data-cal="-1">‹</button>'+
     '<div class="cal-month">'+MONTHS[mm]+' '+yy+'</div>'+
     '<button class="cal-nav" data-cal="1">›</button>'+
   '</div>'+
   '<div class="cal-grid">'+dowRow+cells+'</div>'+
-  '<div class="sec-lbl">'+prettyDate(sel)+'</div>'+ awayNote+
+  '<div class="sec-lbl">'+prettyDate(sel)+'</div>'+ custCard +
   '<div class="card card-tight">'+selHtml+'</div>';
 }
 
@@ -486,7 +570,7 @@ function viewKids(){
 function viewKid(k){
   var t=todayStr();
   var home=isHome(k,t);
-  var awayLabels=(k.awayDays||[]).slice().sort().map(function(d){return DOW[d];}).join(', ');
+  var g=k.custodyGroup;
   var docsDefs=[
     {key:'schoolCard',ico:'🎒',label:'School card',sub:'Annual card'},
     {key:'medicalCard',ico:'🩺',label:'Medical aid',sub:'Card / number'},
@@ -522,9 +606,11 @@ function viewKid(k){
 
   '<div class="sec-lbl">Where '+esc(k.name.split(' ')[0])+' stays</div>'+
   '<div class="card">'+
-    '<div class="spread"><div><div style="font-weight:700">Away days each week</div>'+
-    '<div class="hint">'+(awayLabels?'At '+esc(k.otherHome||'other home')+': '+awayLabels:'Home every day — no away days set')+'</div></div>'+
-    '<button class="btn soft sm" style="width:auto;padding:0 16px" data-schedule="'+k.id+'">Edit</button></div>'+
+    (g ? '<div class="cust-row" style="margin-bottom:7px"><span class="lgd" style="background:'+GROUPS[g].color+';width:15px;height:15px"></span><span style="font-weight:700">With us on '+(g==='A'?'pink':'blue')+' days</span></div>'+
+         '<div class="hint">When away, '+esc(k.name.split(' ')[0])+' is at '+esc(k.otherHome||'their other home')+'. This follows the family calendar.</div>'
+       : '<div class="hint">No custody schedule set for '+esc(k.name.split(' ')[0])+'.</div>')+
+    '<div style="height:14px"></div>'+
+    '<div class="d7row">'+ next7strip(k) +'</div>'+
   '</div>'+
 
   '<div class="sec-lbl">Documents (on this phone only)</div>'+
